@@ -787,3 +787,33 @@ class InteractionCustomizationArgsValidationJob(
         else:
             output_values.append(key[exp_id_index:])
             yield (key[:exp_id_index - 1], output_values)
+
+class RuleSpecOneOffJob(jobs.BaseMapReduceOneOffJobManager):
+    """Job that produces a list of (rule type, list of all rule inputs) for
+    each rule type.
+    """
+
+    @classmethod
+    def entity_classes_to_map_over(cls):
+        return [exp_models.ExplorationModel]
+
+    @staticmethod
+    def map(item):
+        for state_name in item.states:
+            state = item.states[state_name]
+            interaction_id = state['interaction']['id']
+            if interaction_id is None:
+                continue
+            answer_groups = state['interaction']['answer_groups']
+            for answer_group in answer_groups:
+                for rule_spec in answer_group['rule_specs']:
+                    yield(
+                        '%s-%s' % (
+                            interaction_id,
+                            rule_spec['rule_type']),
+                        rule_spec['inputs']
+                    )
+
+    @staticmethod
+    def reduce(key, values):
+        yield(key, values)

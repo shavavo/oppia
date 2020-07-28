@@ -3165,3 +3165,85 @@ class ExplorationMathRichTextInfoModelDeletionOneOffJobTests(
         expected_output = (
             [u'[u\'model_deleted\', [u\'3 models successfully delelted.\']]'])
         self.assertEqual(actual_output, expected_output)
+
+class RuleSpecOneOffJobTests(test_utils.GenericTestBase):
+
+    ALBERT_EMAIL = 'albert@example.com'
+    ALBERT_NAME = 'albert'
+
+    EXP_ID = 'exp_id0'
+    EXP_TITLE = 'Title'
+
+    def setUp(self):
+        super(RuleSpecOneOffJobTests, self).setUp()
+
+        # Setup user who will own the test explorations.
+        self.signup(self.ALBERT_EMAIL, self.ALBERT_NAME)
+        self.albert_id = self.get_user_id_from_email(self.ALBERT_EMAIL)
+        self.process_and_flush_pending_tasks()
+
+    def test_explorations_with_no_rule_specs(self):
+        """Test the audit job output when there are several explorations with
+        math rich text components.
+        """
+        exploration_with_no_rule_specs = (
+            exp_domain.Exploration.create_default_exploration(
+                self.EXP_ID, title=self.EXP_TITLE, category='category'))
+        exploration_with_no_rule_specs.add_states(['State1'])
+
+        exp_services.save_new_exploration(
+            self.albert_id, exploration_with_no_rule_specs)
+
+        job_id = exp_jobs_one_off.RuleSpecOneOffJob.create_new()
+        exp_jobs_one_off.RuleSpecOneOffJob.enqueue(job_id)
+        self.process_and_flush_pending_tasks()
+
+        actual_output = exp_jobs_one_off.RuleSpecOneOffJob.get_output(job_id)
+        self.assertEqual(actual_output, [])
+
+    def test_explorations_with_rule_specs(self):
+        """Test the audit job output when there are several explorations with
+        math rich text components.
+        """
+        exploration_with_rule_specs = (
+            exp_domain.Exploration.create_default_exploration(
+                self.EXP_ID, title=self.EXP_TITLE, category='category'))
+        
+        exploration_with_rule_specs.add_states(['State1'])
+        state1 = exploration_with_rule_specs.states['State1']
+        
+        answer_group_dict = {
+            'outcome': {
+                'dest': 'Introduction',
+                'feedback': {
+                    'content_id': 'feedback_1',
+                    'html': '<p>Feedback</p>'
+                },
+                'labelled_as_correct': False,
+                'param_changes': [],
+                'refresher_exploration_id': None,
+                'missing_prerequisite_skill_id': None
+            },
+            'rule_specs': [{
+                'inputs': {
+                    'x': 'test'
+                },
+                'rule_type': 'Equals'
+            }],
+            'training_data': [],
+            'tagged_skill_misconception_id': None
+        }
+        state1.update_interaction_id('TextInput')
+        state1.update_interaction_answer_groups([answer_group_dict])
+
+        exp_services.save_new_exploration(
+            self.albert_id, exploration_with_rule_specs)
+
+        job_id = exp_jobs_one_off.RuleSpecOneOffJob.create_new()
+        exp_jobs_one_off.RuleSpecOneOffJob.enqueue(job_id)
+        self.process_and_flush_pending_tasks()
+
+        actual_output = exp_jobs_one_off.RuleSpecOneOffJob.get_output(job_id)
+        self.assertEqual(actual_output,
+            [u'[u\'TextInput-Equals\', [u"{u\'x\': u\'test\'}"]]']
+        )
