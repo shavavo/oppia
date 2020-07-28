@@ -799,6 +799,9 @@ class RuleSpecAuditOneOffJob(jobs.BaseMapReduceOneOffJobManager):
 
     @staticmethod
     def map(item):
+        if item.deleted:
+            return
+
         for state_name in item.states:
             state = item.states[state_name]
             interaction_id = state['interaction']['id']
@@ -807,11 +810,16 @@ class RuleSpecAuditOneOffJob(jobs.BaseMapReduceOneOffJobManager):
             answer_groups = state['interaction']['answer_groups']
             for answer_group in answer_groups:
                 for rule_spec in answer_group['rule_specs']:
+                    output_values = '%s %s %s' % (
+                        rule_spec['inputs'],
+                        item.id.encode('utf-8'),
+                        state_name.encode('utf-8')
+                    )
                     yield (
                         '%s-%s' % (
-                            interaction_id,
-                            rule_spec['rule_type']),
-                        rule_spec['inputs']
+                            interaction_id.encode('utf-8'),
+                            rule_spec['rule_type'].encode('utf-8')),
+                        output_values
                     )
 
     @staticmethod

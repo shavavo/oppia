@@ -3226,7 +3226,7 @@ class RuleSpecAuditOneOffJobTests(test_utils.GenericTestBase):
             },
             'rule_specs': [{
                 'inputs': {
-                    'x': 'test'
+                    'x': u'test'
                 },
                 'rule_type': 'Equals'
             }],
@@ -3247,5 +3247,5 @@ class RuleSpecAuditOneOffJobTests(test_utils.GenericTestBase):
             job_id)
         self.assertEqual(
             actual_output,
-            [u'[u\'TextInput-Equals\', [u"{u\'x\': u\'test\'}"]]']
+            [u'[u\'TextInput-Equals\', [u"{u\'x\': u\'test\'} exp_id0 State1"]]']
         )
