@@ -3249,3 +3249,52 @@ class RuleSpecAuditOneOffJobTests(test_utils.GenericTestBase):
             actual_output,
             [u'[u\'TextInput-Equals\', [u"{u\'x\': u\'test\'} exp_id0 State1"]]']
         )
+
+    def test_explorations_with_non_whitelisted_interaction(self):
+        """Test the audit job output when there are several explorations with
+        math rich text components.
+        """
+        exploration_with_rule_specs = (
+            exp_domain.Exploration.create_default_exploration(
+                self.EXP_ID, title=self.EXP_TITLE, category='category'))
+
+        exploration_with_rule_specs.add_states(['State1'])
+        state1 = exploration_with_rule_specs.states['State1']
+
+        answer_group_dict = {
+            'outcome': {
+                'dest': 'Introduction',
+                'feedback': {
+                    'content_id': 'feedback_1',
+                    'html': '<p>Feedback</p>'
+                },
+                'labelled_as_correct': False,
+                'param_changes': [],
+                'refresher_exploration_id': None,
+                'missing_prerequisite_skill_id': None
+            },
+            'rule_specs': [{
+                'inputs': {
+                    'x': 2
+                },
+                'rule_type': 'Equals'
+            }],
+            'training_data': [],
+            'tagged_skill_misconception_id': None
+        }
+        state1.update_interaction_id('MultipleChoiceInput')
+        state1.update_interaction_answer_groups([answer_group_dict])
+
+        exp_services.save_new_exploration(
+            self.albert_id, exploration_with_rule_specs)
+
+        job_id = exp_jobs_one_off.RuleSpecAuditOneOffJob.create_new()
+        exp_jobs_one_off.RuleSpecAuditOneOffJob.enqueue(job_id)
+        self.process_and_flush_pending_tasks()
+
+        actual_output = exp_jobs_one_off.RuleSpecAuditOneOffJob.get_output(
+            job_id)
+        self.assertEqual(
+            actual_output,
+            []
+        )

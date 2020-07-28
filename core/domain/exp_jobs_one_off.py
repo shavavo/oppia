@@ -793,6 +793,8 @@ class RuleSpecAuditOneOffJob(jobs.BaseMapReduceOneOffJobManager):
     each rule type.
     """
 
+    WHITELISTED_INTERACTIONS = ['TextInput', 'SetInput']
+
     @classmethod
     def entity_classes_to_map_over(cls):
         return [exp_models.ExplorationModel]
@@ -805,7 +807,8 @@ class RuleSpecAuditOneOffJob(jobs.BaseMapReduceOneOffJobManager):
         for state_name in item.states:
             state = item.states[state_name]
             interaction_id = state['interaction']['id']
-            if interaction_id is None:
+            whitelist = RuleSpecAuditOneOffJob.WHITELISTED_INTERACTIONS
+            if interaction_id is None or interaction_id not in whitelist:
                 continue
             answer_groups = state['interaction']['answer_groups']
             for answer_group in answer_groups:
