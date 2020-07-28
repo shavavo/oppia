@@ -3166,6 +3166,7 @@ class ExplorationMathRichTextInfoModelDeletionOneOffJobTests(
             [u'[u\'model_deleted\', [u\'3 models successfully delelted.\']]'])
         self.assertEqual(actual_output, expected_output)
 
+
 class RuleSpecAuditOneOffJobTests(test_utils.GenericTestBase):
 
     ALBERT_EMAIL = 'albert@example.com'
@@ -3198,7 +3199,8 @@ class RuleSpecAuditOneOffJobTests(test_utils.GenericTestBase):
         exp_jobs_one_off.RuleSpecAuditOneOffJob.enqueue(job_id)
         self.process_and_flush_pending_tasks()
 
-        actual_output = exp_jobs_one_off.RuleSpecAuditOneOffJob.get_output(job_id)
+        actual_output = exp_jobs_one_off.RuleSpecAuditOneOffJob.get_output(
+            job_id)
         self.assertEqual(actual_output, [])
 
     def test_text_input_explorations_with_rule_specs(self):

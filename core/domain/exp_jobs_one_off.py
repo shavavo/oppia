@@ -788,6 +788,7 @@ class InteractionCustomizationArgsValidationJob(
             output_values.append(key[exp_id_index:])
             yield (key[:exp_id_index - 1], output_values)
 
+
 class RuleSpecAuditOneOffJob(jobs.BaseMapReduceOneOffJobManager):
     """Job that produces a list of (rule type, list of all rule inputs) for
     each rule type.
@@ -818,8 +819,8 @@ class RuleSpecAuditOneOffJob(jobs.BaseMapReduceOneOffJobManager):
                     for input_name in inputs:
                         input_value = inputs[input_name]
                         if isinstance(
-                            input_value,
-                            (python_utils.BASESTRING, python_utils.UNICODE)
+                                input_value,
+                                (python_utils.BASESTRING, python_utils.UNICODE)
                         ):
                             inputs_str += input_value.encode('utf-8')
                         if isinstance(input_value, list):
