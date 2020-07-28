@@ -793,7 +793,7 @@ class RuleSpecAuditOneOffJob(jobs.BaseMapReduceOneOffJobManager):
     each rule type.
     """
 
-    WHITELISTED_INTERACTIONS = ['TextInput', 'SetInput']
+    ALLOWLIST_INTERACTION_IDS = ['TextInput', 'SetInput']
 
     @classmethod
     def entity_classes_to_map_over(cls):
@@ -807,14 +807,29 @@ class RuleSpecAuditOneOffJob(jobs.BaseMapReduceOneOffJobManager):
         for state_name in item.states:
             state = item.states[state_name]
             interaction_id = state['interaction']['id']
-            whitelist = RuleSpecAuditOneOffJob.WHITELISTED_INTERACTIONS
-            if interaction_id is None or interaction_id not in whitelist:
+            allowlist = RuleSpecAuditOneOffJob.ALLOWLIST_INTERACTION_IDS
+            if interaction_id is None or interaction_id not in allowlist:
                 continue
             answer_groups = state['interaction']['answer_groups']
             for answer_group in answer_groups:
                 for rule_spec in answer_group['rule_specs']:
+                    inputs = rule_spec['inputs']
+                    inputs_str = ''
+                    for input_name in inputs:
+                        input_value = inputs[input_name]
+                        if isinstance(
+                            input_value,
+                            (python_utils.BASESTRING, python_utils.UNICODE)
+                        ):
+                            inputs_str += input_value.encode('utf-8')
+                        if isinstance(input_value, list):
+                            inputs_str += ';'.join([
+                                value.encode('utf-8') for value in input_value
+                            ])
+                        inputs_str += ';'
+
                     output_values = '%s %s %s' % (
-                        rule_spec['inputs'],
+                        inputs_str,
                         item.id.encode('utf-8'),
                         state_name.encode('utf-8')
                     )
