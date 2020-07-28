@@ -3166,7 +3166,7 @@ class ExplorationMathRichTextInfoModelDeletionOneOffJobTests(
             [u'[u\'model_deleted\', [u\'3 models successfully delelted.\']]'])
         self.assertEqual(actual_output, expected_output)
 
-class RuleSpecOneOffJobTests(test_utils.GenericTestBase):
+class RuleSpecAuditOneOffJobTests(test_utils.GenericTestBase):
 
     ALBERT_EMAIL = 'albert@example.com'
     ALBERT_NAME = 'albert'
@@ -3175,7 +3175,7 @@ class RuleSpecOneOffJobTests(test_utils.GenericTestBase):
     EXP_TITLE = 'Title'
 
     def setUp(self):
-        super(RuleSpecOneOffJobTests, self).setUp()
+        super(RuleSpecAuditOneOffJobTests, self).setUp()
 
         # Setup user who will own the test explorations.
         self.signup(self.ALBERT_EMAIL, self.ALBERT_NAME)
@@ -3194,11 +3194,11 @@ class RuleSpecOneOffJobTests(test_utils.GenericTestBase):
         exp_services.save_new_exploration(
             self.albert_id, exploration_with_no_rule_specs)
 
-        job_id = exp_jobs_one_off.RuleSpecOneOffJob.create_new()
-        exp_jobs_one_off.RuleSpecOneOffJob.enqueue(job_id)
+        job_id = exp_jobs_one_off.RuleSpecAuditOneOffJob.create_new()
+        exp_jobs_one_off.RuleSpecAuditOneOffJob.enqueue(job_id)
         self.process_and_flush_pending_tasks()
 
-        actual_output = exp_jobs_one_off.RuleSpecOneOffJob.get_output(job_id)
+        actual_output = exp_jobs_one_off.RuleSpecAuditOneOffJob.get_output(job_id)
         self.assertEqual(actual_output, [])
 
     def test_explorations_with_rule_specs(self):
@@ -3208,10 +3208,10 @@ class RuleSpecOneOffJobTests(test_utils.GenericTestBase):
         exploration_with_rule_specs = (
             exp_domain.Exploration.create_default_exploration(
                 self.EXP_ID, title=self.EXP_TITLE, category='category'))
-        
+
         exploration_with_rule_specs.add_states(['State1'])
         state1 = exploration_with_rule_specs.states['State1']
-        
+
         answer_group_dict = {
             'outcome': {
                 'dest': 'Introduction',
@@ -3239,11 +3239,13 @@ class RuleSpecOneOffJobTests(test_utils.GenericTestBase):
         exp_services.save_new_exploration(
             self.albert_id, exploration_with_rule_specs)
 
-        job_id = exp_jobs_one_off.RuleSpecOneOffJob.create_new()
-        exp_jobs_one_off.RuleSpecOneOffJob.enqueue(job_id)
+        job_id = exp_jobs_one_off.RuleSpecAuditOneOffJob.create_new()
+        exp_jobs_one_off.RuleSpecAuditOneOffJob.enqueue(job_id)
         self.process_and_flush_pending_tasks()
 
-        actual_output = exp_jobs_one_off.RuleSpecOneOffJob.get_output(job_id)
-        self.assertEqual(actual_output,
+        actual_output = exp_jobs_one_off.RuleSpecAuditOneOffJob.get_output(
+            job_id)
+        self.assertEqual(
+            actual_output,
             [u'[u\'TextInput-Equals\', [u"{u\'x\': u\'test\'}"]]']
         )

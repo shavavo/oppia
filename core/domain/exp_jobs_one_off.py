@@ -788,7 +788,7 @@ class InteractionCustomizationArgsValidationJob(
             output_values.append(key[exp_id_index:])
             yield (key[:exp_id_index - 1], output_values)
 
-class RuleSpecOneOffJob(jobs.BaseMapReduceOneOffJobManager):
+class RuleSpecAuditOneOffJob(jobs.BaseMapReduceOneOffJobManager):
     """Job that produces a list of (rule type, list of all rule inputs) for
     each rule type.
     """
@@ -807,7 +807,7 @@ class RuleSpecOneOffJob(jobs.BaseMapReduceOneOffJobManager):
             answer_groups = state['interaction']['answer_groups']
             for answer_group in answer_groups:
                 for rule_spec in answer_group['rule_specs']:
-                    yield(
+                    yield (
                         '%s-%s' % (
                             interaction_id,
                             rule_spec['rule_type']),
@@ -816,4 +816,4 @@ class RuleSpecOneOffJob(jobs.BaseMapReduceOneOffJobManager):
 
     @staticmethod
     def reduce(key, values):
-        yield(key, values)
+        yield (key, values)
