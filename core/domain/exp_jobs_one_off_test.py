@@ -3166,6 +3166,7 @@ class ExplorationMathRichTextInfoModelDeletionOneOffJobTests(
             [u'[u\'model_deleted\', [u\'3 models successfully delelted.\']]'])
         self.assertEqual(actual_output, expected_output)
 
+
 class RuleSpecAuditOneOffJobTests(test_utils.GenericTestBase):
 
     ALBERT_EMAIL = 'albert@example.com'
@@ -3298,6 +3299,7 @@ class RuleSpecAuditOneOffJobTests(test_utils.GenericTestBase):
             actual_output,
             []
         )
+
 
 class RuleSpecTypeAuditOneOffJobTests(test_utils.GenericTestBase):
 
