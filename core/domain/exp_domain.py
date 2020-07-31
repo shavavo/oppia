@@ -27,6 +27,7 @@ from __future__ import unicode_literals  # pylint: disable=import-only-modules
 import collections
 import copy
 import functools
+import logging
 import re
 import string
 
@@ -2673,6 +2674,7 @@ class Exploration(python_utils.OBJECT):
 
             interaction_id = state_dict['interaction']['id']
             if interaction_id is None:
+                logging.info('Interaction id is None')
                 state_dict['next_content_id_index'] = (
                     max_existing_content_id_index + 1)
                 continue
@@ -2716,6 +2718,8 @@ class Exploration(python_utils.OBJECT):
             ca_dict = state_dict['interaction']['customization_args']
             if (interaction_id == 'PencilCodeEditor' and
                     'initial_code' in ca_dict):
+                logging.info('Migrated PencilCodeEditor initial_code')
+                
                 ca_dict['initialCode'] = ca_dict['initial_code']
                 del ca_dict['initial_code']
 
@@ -2750,6 +2754,8 @@ class Exploration(python_utils.OBJECT):
                     schema_utils.is_subtitled_html_schema(schema['items']))
 
                 if is_subtitled_unicode_spec:
+                    logging.info('Migrated SubtitledUnicode')
+
                     # Default is a SubtitledHtml dict or SubtitleUnicode dict.
                     new_value = copy.deepcopy(ca_spec.default_value)
 
@@ -2765,6 +2771,8 @@ class Exploration(python_utils.OBJECT):
 
                     ca_dict[ca_name] = {'value': new_value}
                 elif is_subtitled_html_list_spec:
+                    logging.info('Migrated SubtitledHtml list')
+
                     new_value = []
 
                     if ca_name in ca_dict:
@@ -2786,6 +2794,7 @@ class Exploration(python_utils.OBJECT):
 
                     ca_dict[ca_name] = {'value': new_value}
                 elif ca_name not in ca_dict:
+                    logging.info('Populated missing customization arg')
                     ca_dict[ca_name] = {'value': ca_spec.default_value}
 
 
@@ -3909,7 +3918,7 @@ class Exploration(python_utils.OBJECT):
         return exploration_dict
 
     @classmethod
-    def _convert_v40_dict_to_v41_dict(cls, exploration_dict):
+    def convert_v40_dict_to_v41_dict(cls, exploration_dict):
         """Converts a v40 exploration dict into a v41 exploration dict.
         Adds translation support to customization args.
 
@@ -4163,7 +4172,7 @@ class Exploration(python_utils.OBJECT):
             exploration_schema_version = 40
 
         if exploration_schema_version == 40:
-            exploration_dict = cls._convert_v40_dict_to_v41_dict(
+            exploration_dict = cls.convert_v40_dict_to_v41_dict(
                 exploration_dict)
             exploration_schema_version = 41
 
