@@ -718,7 +718,7 @@ class RuleSpecAuditOneOffJob(jobs.BaseMapReduceOneOffJobManager):
     each rule type.
     """
 
-    WHITELISTED_INTERACTIONS = ['TextInput', 'SetInput']
+    ALLOWLIST_INTERACTION_IDS = ['TextInput', 'SetInput']
 
     @classmethod
     def entity_classes_to_map_over(cls):
@@ -732,8 +732,8 @@ class RuleSpecAuditOneOffJob(jobs.BaseMapReduceOneOffJobManager):
         for state_name in item.states:
             state = item.states[state_name]
             interaction_id = state['interaction']['id']
-            whitelist = RuleSpecAuditOneOffJob.WHITELISTED_INTERACTIONS
-            if interaction_id is None or interaction_id not in whitelist:
+            allowlist = RuleSpecAuditOneOffJob.ALLOWLIST_INTERACTION_IDS
+            if interaction_id is None or interaction_id not in allowlist:
                 continue
             answer_groups = state['interaction']['answer_groups']
             for answer_group in answer_groups:
@@ -753,3 +753,113 @@ class RuleSpecAuditOneOffJob(jobs.BaseMapReduceOneOffJobManager):
     @staticmethod
     def reduce(key, values):
         yield (key, values)
+
+
+class RuleSpecTypeAuditOneOffJob(jobs.BaseMapReduceOneOffJobManager):
+    """Job that produces a list of (rule type, list of all rule inputs) for
+    each rule type.
+    """
+
+    EXPECTED_KEYS = [
+        'ONE_RULE_TYPE_IN_ANSWER_GROUP',
+        'ANSWER_GROUP_LOCAL_NO_COLLISIONS',
+        'ANSWER_GROUP_EXTERNAL_NO_COLLISIONS_SO_FAR'
+    ]
+
+    @classmethod
+    def entity_classes_to_map_over(cls):
+        return [exp_models.ExplorationModel]
+
+    @staticmethod
+    def map(item):
+        if item.deleted:
+            return
+
+        for state_name in item.states:
+            state = item.states[state_name]
+            interaction_id = state['interaction']['id']
+            if interaction_id != 'TextInput':
+                continue
+            answer_groups = state['interaction']['answer_groups']
+
+            # Track inputs of Equals, FuzzyEquals, and CaseSensitiveEquals
+            # within all answer groups of an interaction.
+            all_equal_inputs_unique = set()
+            all_equal_inputs = []
+
+            for answer_group in answer_groups:
+                # Track rule types encountered in answer group.
+                rule_types_in_answer_group_unique = set()
+                rule_types_in_answer_group = []
+                for rule_spec in answer_group['rule_specs']:
+                    rule_type = rule_spec['rule_type'].encode('utf-8')
+                    rule_types_in_answer_group_unique.add(rule_type)
+                    rule_types_in_answer_group.append(rule_type)
+                if len(rule_types_in_answer_group_unique) > 1:
+                    yield (
+                        'MULTIPLE_RULE_TYPES_IN_ANSWER_GROUP',
+                        (
+                            rule_types_in_answer_group,
+                            item.id.encode('utf-8'),
+                            state_name.encode('utf-8')
+                        )
+                    )
+                else:
+                    yield ('ONE_RULE_TYPE_IN_ANSWER_GROUP', None)
+                
+                # Check for collisions with migrating FuzzyEquals => Equals
+                # and CaseSensitiveEquals => Equals within an answer group.
+                equal_inputs_unique = set()
+                equal_inputs = []
+                for rule_spec in answer_group['rule_specs']:
+                    rule_type = rule_spec['rule_type'].encode('utf-8')
+                    if (
+                            rule_type not in
+                            ['Equals', 'FuzzyEquals', 'CaseSensitiveEquals']
+                    ):
+                        continue
+                    # Because Equals does not check for case, we use lower here
+                    # to check for collisions.
+                    rule_input = rule_spec[
+                        'inputs']['x'].encode('utf-8').lower()
+                    equal_inputs_unique.add(rule_input)
+                    equal_inputs.append((rule_type, rule_input))
+                
+                if len(equal_inputs) > len(equal_inputs_unique):
+                    yield (
+                        'ANSWER_GROUP_LOCAL_COLLISION',
+                        (
+                            equal_inputs,
+                            item.id.encode('utf-8'),
+                            state_name.encode('utf-8')
+                        )
+                    )
+                else:
+                    yield ('ANSWER_GROUP_LOCAL_NO_COLLISIONS', None)
+
+                # Check for collisions with migrating FuzzyEquals => Equals
+                # and CaseSensitiveEquals => Equals between all answer groups.
+                answer_groups_equal_input_collisions = (
+                    all_equal_inputs_unique.intersection(equal_inputs_unique))
+                all_equal_inputs_unique = (
+                    all_equal_inputs_unique.union(equal_inputs_unique))
+                all_equal_inputs.extend(equal_inputs)
+                
+                if len(answer_groups_equal_input_collisions) > 0:
+                    yield(
+                        'ANSWER_GROUP_EXTERNAL_COLLISION',
+                        (
+                            all_equal_inputs,
+                            item.id.encode('utf-8'),
+                            state_name.encode('utf-8')
+                        )
+                    )
+                else:
+                    yield('ANSWER_GROUP_EXTERNAL_NO_COLLISIONS_SO_FAR', None)
+
+    @staticmethod
+    def reduce(key, values):
+        if key in RuleSpecTypeAuditOneOffJob.EXPECTED_KEYS:
+            yield (key, len(values))
+        else:
+            yield (key, values)
