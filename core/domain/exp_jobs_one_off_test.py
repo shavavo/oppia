@@ -3183,8 +3183,7 @@ class RuleSpecAuditOneOffJobTests(test_utils.GenericTestBase):
         self.process_and_flush_pending_tasks()
 
     def test_explorations_with_no_rule_specs(self):
-        """Test the audit job output when there are no rule specs.
-        """
+        """Test the audit job output when there are no rule specs."""
         exploration_with_no_rule_specs = (
             exp_domain.Exploration.create_default_exploration(
                 self.EXP_ID, title=self.EXP_TITLE, category='category'))
@@ -3197,12 +3196,12 @@ class RuleSpecAuditOneOffJobTests(test_utils.GenericTestBase):
         exp_jobs_one_off.RuleSpecAuditOneOffJob.enqueue(job_id)
         self.process_and_flush_pending_tasks()
 
-        actual_output = exp_jobs_one_off.RuleSpecAuditOneOffJob.get_output(job_id)
+        actual_output = exp_jobs_one_off.RuleSpecAuditOneOffJob.get_output(
+            job_id)
         self.assertEqual(actual_output, [])
 
     def test_explorations_with_rule_specs(self):
-        """Test the audit job output when there are several rule specs.
-        """
+        """Test the audit job output when there are several rule specs."""
         exploration_with_rule_specs = (
             exp_domain.Exploration.create_default_exploration(
                 self.EXP_ID, title=self.EXP_TITLE, category='category'))
@@ -3245,7 +3244,10 @@ class RuleSpecAuditOneOffJobTests(test_utils.GenericTestBase):
             job_id)
         self.assertEqual(
             actual_output,
-            [u'[u\'TextInput-Equals\', [u"{u\'x\': u\'test\'} exp_id0 State1"]]']
+            [
+                u'[u\'TextInput-Equals\', [u"{u\'x\': u\'test\'} exp_id0 '
+                'State1"]]'
+            ]
         )
 
     def test_explorations_with_non_allowlisted_interaction(self):
@@ -3314,8 +3316,7 @@ class RuleSpecTypeAuditOneOffJobTests(test_utils.GenericTestBase):
         self.process_and_flush_pending_tasks()
 
     def test_explorations_with_no_rule_specs(self):
-        """Test the audit job output when there no rule specs.
-        """
+        """Test the audit job output when there no rule specs."""
         exploration_with_no_rule_specs = (
             exp_domain.Exploration.create_default_exploration(
                 self.EXP_ID, title=self.EXP_TITLE, category='category'))
@@ -3439,8 +3440,9 @@ class RuleSpecTypeAuditOneOffJobTests(test_utils.GenericTestBase):
             [
                 u'[u\'ANSWER_GROUP_LOCAL_NO_COLLISIONS\', 1]',
                 u'[u\'ANSWER_GROUP_EXTERNAL_NO_COLLISIONS_SO_FAR\', 1]',
-                (u'[u\'MULTIPLE_RULE_TYPES_IN_ANSWER_GROUP\', [u"([\'Equals\', '
-                 '\'FuzzyEquals\'], \'exp_id0\', \'State1\')"]]')
+                (
+                    u'[u\'MULTIPLE_RULE_TYPES_IN_ANSWER_GROUP\', [u"([\'Equals'
+                    '\', \'FuzzyEquals\'], \'exp_id0\', \'State1\')"]]')
             ]
         )
 
@@ -3498,11 +3500,13 @@ class RuleSpecTypeAuditOneOffJobTests(test_utils.GenericTestBase):
             actual_output,
             [
                 u'[u\'ANSWER_GROUP_EXTERNAL_NO_COLLISIONS_SO_FAR\', 1]',
-                (u'[u\'ANSWER_GROUP_LOCAL_COLLISION\', [u"([(\'Equals\', \'test'
-                 'ing\'), (\'FuzzyEquals\', \'testing\')], \'exp_id0\', \'State'
-                 '1\')"]]'),
-                (u'[u\'MULTIPLE_RULE_TYPES_IN_ANSWER_GROUP\', [u"([\'Equals\', '
-                 '\'FuzzyEquals\'], \'exp_id0\', \'State1\')"]]')
+                (
+                    u'[u\'ANSWER_GROUP_LOCAL_COLLISION\', [u"([(\'Equals\', \''
+                    'testing\'), (\'FuzzyEquals\', \'testing\')], \'exp_id0\','
+                    ' \'State1\')"]]'),
+                (
+                    u'[u\'MULTIPLE_RULE_TYPES_IN_ANSWER_GROUP\', [u"(['
+                    '\'Equals\', \'FuzzyEquals\'], \'exp_id0\', \'State1\')"]]')
             ]
         )
 
@@ -3576,9 +3580,10 @@ class RuleSpecTypeAuditOneOffJobTests(test_utils.GenericTestBase):
         self.assertEqual(
             actual_output,
             [
-                (u'[u\'ANSWER_GROUP_EXTERNAL_COLLISION\', [u"([(\'Equals\', '
-                 '\'testing\'), (\'CaseSensitiveEquals\', \'testing\')], '
-                 '\'exp_id0\', \'State1\')"]]'),
+                (
+                    u'[u\'ANSWER_GROUP_EXTERNAL_COLLISION\', [u"([(\'Equals\', '
+                    '\'testing\'), (\'CaseSensitiveEquals\', \'testing\')], '
+                    '\'exp_id0\', \'State1\')"]]'),
                 u'[u\'ANSWER_GROUP_LOCAL_NO_COLLISIONS\', 2]',
                 u'[u\'ONE_RULE_TYPE_IN_ANSWER_GROUP\', 2]',
                 u'[u\'ANSWER_GROUP_EXTERNAL_NO_COLLISIONS_SO_FAR\', 1]',

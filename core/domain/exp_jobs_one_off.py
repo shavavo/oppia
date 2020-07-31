@@ -806,7 +806,7 @@ class RuleSpecTypeAuditOneOffJob(jobs.BaseMapReduceOneOffJobManager):
                     )
                 else:
                     yield ('ONE_RULE_TYPE_IN_ANSWER_GROUP', None)
-                
+
                 # Check for collisions with migrating FuzzyEquals => Equals
                 # and CaseSensitiveEquals => Equals within an answer group.
                 equal_inputs_unique = set()
@@ -824,7 +824,7 @@ class RuleSpecTypeAuditOneOffJob(jobs.BaseMapReduceOneOffJobManager):
                         'inputs']['x'].encode('utf-8').lower()
                     equal_inputs_unique.add(rule_input)
                     equal_inputs.append((rule_type, rule_input))
-                
+
                 if len(equal_inputs) > len(equal_inputs_unique):
                     yield (
                         'ANSWER_GROUP_LOCAL_COLLISION',
@@ -844,9 +844,9 @@ class RuleSpecTypeAuditOneOffJob(jobs.BaseMapReduceOneOffJobManager):
                 all_equal_inputs_unique = (
                     all_equal_inputs_unique.union(equal_inputs_unique))
                 all_equal_inputs.extend(equal_inputs)
-                
+
                 if len(answer_groups_equal_input_collisions) > 0:
-                    yield(
+                    yield (
                         'ANSWER_GROUP_EXTERNAL_COLLISION',
                         (
                             all_equal_inputs,
@@ -855,7 +855,7 @@ class RuleSpecTypeAuditOneOffJob(jobs.BaseMapReduceOneOffJobManager):
                         )
                     )
                 else:
-                    yield('ANSWER_GROUP_EXTERNAL_NO_COLLISIONS_SO_FAR', None)
+                    yield ('ANSWER_GROUP_EXTERNAL_NO_COLLISIONS_SO_FAR', None)
 
     @staticmethod
     def reduce(key, values):
