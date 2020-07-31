@@ -2719,7 +2719,7 @@ class Exploration(python_utils.OBJECT):
             if (interaction_id == 'PencilCodeEditor' and
                     'initial_code' in ca_dict):
                 logging.info('Migrated PencilCodeEditor initial_code')
-                
+
                 ca_dict['initialCode'] = ca_dict['initial_code']
                 del ca_dict['initial_code']
 

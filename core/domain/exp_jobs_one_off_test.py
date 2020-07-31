@@ -3022,6 +3022,7 @@ class ExplorationMathRichTextInfoModelDeletionOneOffJobTests(
 
 
 class ExplorationMigrationToV41AuditJobTests(test_utils.GenericTestBase):
+    """Tests for ExplorationMigrationToV41AuditJob."""
 
     ALBERT_EMAIL = 'albert@example.com'
     ALBERT_NAME = 'albert'
