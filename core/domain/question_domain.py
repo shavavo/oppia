@@ -227,7 +227,7 @@ class Question(python_utils.OBJECT):
         Args:
             question_state_dict: dict. A dict where each key-value pair
                 represents respectively, a state name and a dict used to
-                initalize a State domain object.
+                initialize a State domain object.
 
         Returns:
             dict. The converted question_state_dict.
@@ -247,7 +247,7 @@ class Question(python_utils.OBJECT):
         Args:
             question_state_dict: dict. A dict where each key-value pair
                 represents respectively, a state name and a dict used to
-                initalize a State domain object.
+                initialize a State domain object.
 
         Returns:
             dict. The converted question_state_dict.
@@ -617,7 +617,6 @@ class Question(python_utils.OBJECT):
             elif ca_name not in ca_dict:
                 ca_dict[ca_name] = {'value': ca_spec.default_value}
 
-
         (
             customization_args_util
             .validate_customization_args_and_values(
@@ -860,7 +859,7 @@ class QuestionSummary(python_utils.OBJECT):
         """Validates the Question summary domain object before it is saved.
 
         Raises:
-            ValidationError: One or more attributes of question summary are
+            ValidationError. One or more attributes of question summary are
                 invalid.
         """
         if not isinstance(self.id, python_utils.BASESTRING):

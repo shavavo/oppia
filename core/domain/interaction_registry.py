@@ -125,7 +125,7 @@ class Registry(python_utils.OBJECT):
             interaction specs. See interaction_specs.json for an example.
 
         Raises:
-            Exception: No interaction specs json file found for the given state
+            Exception. No interaction specs json file found for the given state
                 schema version.
         """
         if (state_schema_version not in

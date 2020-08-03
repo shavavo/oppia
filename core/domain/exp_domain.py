@@ -391,7 +391,7 @@ class ExpVersionReference(python_utils.OBJECT):
         """Validates properties of the ExpVersionReference.
 
         Raises:
-            ValidationError: One or more attributes of the ExpVersionReference
+            ValidationError. One or more attributes of the ExpVersionReference
                 are invalid.
         """
         if not isinstance(self.exp_id, python_utils.BASESTRING):
@@ -447,7 +447,7 @@ class ExplorationMathRichTextInfo(python_utils.OBJECT):
         """Validates properties of the ExplorationMathRichTextInfo.
 
         Raises:
-            ValidationError: attributes of the ExplorationMathRichTextInfo
+            ValidationError. Attributes of the ExplorationMathRichTextInfo
                 are invalid.
         """
         if not isinstance(self.exp_id, python_utils.BASESTRING):
@@ -804,7 +804,7 @@ class Exploration(python_utils.OBJECT):
                 and the validation checks are stricter.
 
         Raises:
-            ValidationError: One or more attributes of the Exploration are
+            ValidationError. One or more attributes of the Exploration are
                 invalid.
         """
         if not isinstance(self.title, python_utils.BASESTRING):
@@ -1091,7 +1091,7 @@ class Exploration(python_utils.OBJECT):
         """Verifies that all states are reachable from the initial state.
 
         Raises:
-            ValidationError: One or more states are not reachable from the
+            ValidationError. One or more states are not reachable from the
                 initial state of the Exploration.
         """
         # This queue stores state names.
@@ -1126,7 +1126,7 @@ class Exploration(python_utils.OBJECT):
         """Verifies that all states can reach a terminal state.
 
         Raises:
-            ValidationError: If is impossible to complete the exploration from
+            ValidationError. If is impossible to complete the exploration from
                 a state.
         """
         # This queue stores state names.
@@ -1173,7 +1173,7 @@ class Exploration(python_utils.OBJECT):
             state.
 
         Raises:
-            ValueError: The given state_name does not exist.
+            ValueError. The given state_name does not exist.
         """
         if state_name not in self.states:
             raise ValueError('State %s does not exist' % state_name)
@@ -1369,7 +1369,7 @@ class Exploration(python_utils.OBJECT):
             state_names: list(str). List of state names to add.
 
         Raises:
-            ValueError: At least one of the new state names already exists in
+            ValueError. At least one of the new state names already exists in
                 the states dict.
         """
         for state_name in state_names:
@@ -1388,7 +1388,7 @@ class Exploration(python_utils.OBJECT):
             new_state_name: str. The new state name.
 
         Raises:
-            ValueError: The old state name does not exist or the new state name
+            ValueError. The old state name does not exist or the new state name
                 is already in states dict.
         """
         if old_state_name not in self.states:
@@ -1425,7 +1425,7 @@ class Exploration(python_utils.OBJECT):
             state_name: str. The state name to be deleted.
 
         Raises:
-            ValueError: The state does not exist or is the initial state of the
+            ValueError. The state does not exist or is the initial state of the
                 exploration.
         """
         if state_name not in self.states:
@@ -2797,7 +2797,6 @@ class Exploration(python_utils.OBJECT):
                     logging.info('Populated missing customization arg')
                     ca_dict[ca_name] = {'value': ca_spec.default_value}
 
-
             (
                 customization_args_util
                 .validate_customization_args_and_values(
@@ -3956,8 +3955,8 @@ class Exploration(python_utils.OBJECT):
             schema version provided in 'yaml_content'.
 
         Raises:
-            Exception: 'yaml_content' or the exploration schema version is not
-                valid.
+            Exception. The 'yaml_content' or the exploration schema version is
+                not valid.
         """
         try:
             exploration_dict = utils.dict_from_yaml(yaml_content)
@@ -4191,7 +4190,7 @@ class Exploration(python_utils.OBJECT):
             Exploration. The corresponding exploration domain object.
 
         Raises:
-            Exception: The initial schema version of exploration is less than
+            Exception. The initial schema version of exploration is less than
                 or equal to 9.
         """
         migration_result = cls._migrate_to_latest_yaml_version(
@@ -4223,7 +4222,7 @@ class Exploration(python_utils.OBJECT):
             Exploration. The corresponding exploration domain object.
 
         Raises:
-            Exception: The initial schema version of exploration is less than
+            Exception. The initial schema version of exploration is less than
                 or equal to 9.
         """
         migration_result = cls._migrate_to_latest_yaml_version(
@@ -4407,7 +4406,7 @@ class ExplorationSummary(python_utils.OBJECT):
         """Validates various properties of the ExplorationSummary.
 
         Raises:
-            ValidationError: One or more attributes of the ExplorationSummary
+            ValidationError. One or more attributes of the ExplorationSummary
                 are invalid.
         """
         if not isinstance(self.title, python_utils.BASESTRING):
