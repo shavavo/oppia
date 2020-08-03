@@ -737,18 +737,6 @@ class ExplorationMigrationToV41AuditJob(jobs.BaseMapReduceOneOffJobManager):
         if item.deleted:
             return
 
-        # Do not upgrade explorations that fail non-strict validation.
-        old_exploration = exp_fetchers.get_exploration_by_id(item.id)
-        try:
-            old_exploration.validate()
-        except Exception as e:
-            error_message = (
-                'Exploration %s failed non-strict validation: %s' %
-                (item.id, e))
-            logging.error(error_message)
-            yield ('VALIDATION_ERROR', error_message.encode('utf-8'))
-            return
-
         if item.states_schema_version == 35:
             try:
                 exp_domain.Exploration.convert_v40_dict_to_v41_dict(
