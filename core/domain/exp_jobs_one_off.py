@@ -866,8 +866,8 @@ class RuleSpecTypeAuditOneOffJob(jobs.BaseMapReduceOneOffJobManager):
 
 
 class RulesTextInputMigrationAuditOneOffJob(jobs.BaseMapReduceOneOffJobManager):
-    """Job that produces a list of (rule type, list of all rule inputs) for
-    each rule type.
+    """Job that checks for AnswerGroup collisions with migrating TextInput
+    CaseSensitiveEquals to Equals.
     """
 
     @classmethod
