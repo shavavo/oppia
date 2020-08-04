@@ -3849,3 +3849,90 @@ class RulesTextInputMigrationAuditOneOffJobTests(test_utils.GenericTestBase):
                 u'[u\'ANSWER_GROUP_EXTERNAL_NO_COLLISIONS_SO_FAR\', 1]'
             ]
         )
+
+
+    def test_explorations_with_rule_specs_with_fuzzy_equals_collision(self):
+        """Test the audit job output when there are explorations with
+        RuleSpecs that would collide between AnswerGroups after a migration
+        of FuzzyEquals and CaseSensitiveEquals to Equals.
+        """
+        exploration_with_rule_specs = (
+            exp_domain.Exploration.create_default_exploration(
+                self.EXP_ID, title=self.EXP_TITLE, category='category'))
+
+        exploration_with_rule_specs.add_states(['State1'])
+        state1 = exploration_with_rule_specs.states['State1']
+
+        answer_group_dict = {
+            'outcome': {
+                'dest': 'Introduction',
+                'feedback': {
+                    'content_id': 'feedback_1',
+                    'html': '<p>Feedback</p>'
+                },
+                'labelled_as_correct': False,
+                'param_changes': [],
+                'refresher_exploration_id': None,
+                'missing_prerequisite_skill_id': None
+            },
+            'rule_specs': [{
+                'inputs': {
+                    'x': u'Testing'
+                },
+                'rule_type': 'Equals'
+            }],
+            'training_data': [],
+            'tagged_skill_misconception_id': None
+        }
+        answer_group_dict2 = {
+            'outcome': {
+                'dest': 'Introduction',
+                'feedback': {
+                    'content_id': 'feedback_2',
+                    'html': '<p>Feedback</p>'
+                },
+                'labelled_as_correct': False,
+                'param_changes': [],
+                'refresher_exploration_id': None,
+                'missing_prerequisite_skill_id': None
+            },
+            'rule_specs': [{
+                'inputs': {
+                    'x': u'testing'
+                },
+                'rule_type': 'FuzzyEquals'
+            }],
+            'training_data': [],
+            'tagged_skill_misconception_id': None
+        }
+        state1.update_interaction_id('TextInput')
+        state1.update_interaction_answer_groups(
+            [answer_group_dict, answer_group_dict2])
+
+        exp_services.save_new_exploration(
+            self.albert_id, exploration_with_rule_specs)
+
+        job_id = (
+            exp_jobs_one_off.RulesTextInputMigrationAuditOneOffJob.create_new())
+        exp_jobs_one_off.RulesTextInputMigrationAuditOneOffJob.enqueue(job_id)
+        self.process_and_flush_pending_tasks()
+
+        actual_output = (
+            exp_jobs_one_off.RulesTextInputMigrationAuditOneOffJob.get_output(
+                job_id)
+        )
+        self.assertEqual(
+            actual_output,
+            [
+                u'[u\'ANSWER_GROUP_EXTERNAL_NO_COLLISIONS_SO_FAR\', 1]',
+                (
+                    u'[u\'ANSWER_GROUP_NONCRITICAL_EXTERNAL_COLLISION\', [u"([u'
+                    '\'Equals(Testing)=>Outcome(<p>Feedback</p>)\', u\'FuzzyEqu'
+                    'als(testing)=>Outcome(<p>Feedback</p>)\'], \'exp_id0\', \''
+                    'State1\')"]]'),
+                (
+                    u'[u\'FUZZY_EQUALS_CATCH_COLLISION\', [u"([u\'Equals(Testin'
+                    'g)=>Outcome(<p>Feedback</p>)\', u\'FuzzyEquals(testing)=>O'
+                    'utcome(<p>Feedback</p>)\'], \'exp_id0\', \'State1\')"]]')
+            ]
+        )

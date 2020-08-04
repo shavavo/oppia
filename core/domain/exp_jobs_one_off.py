@@ -892,10 +892,10 @@ class RulesTextInputMigrationAuditOneOffJob(jobs.BaseMapReduceOneOffJobManager):
 
             answer_groups = state['interaction']['answer_groups']
             # Traverse answer groups backwards because we only care about
-            # collisions that occur after a migrated rule.
+            # collisions that occur after a migrated CaseSensitiveEquals rule.
             for answer_group in reversed(answer_groups):
                 # Check for collisions with migrating
-                # CaseSensitiveEquals => Equals within an answer group.
+                # CaseSensitiveEquals => Equals between answer groups.
                 equal_inputs = []
                 equal_inputs_unique = set()
                 case_sensitive_equal_inputs_unique = set()
@@ -955,6 +955,57 @@ class RulesTextInputMigrationAuditOneOffJob(jobs.BaseMapReduceOneOffJobManager):
                     )
                 else:
                     yield ('ANSWER_GROUP_EXTERNAL_NO_COLLISIONS_SO_FAR', None)
+
+            # Track inputs of Equals, FuzzyEquals, and CaseSensitiveEquals
+            # within all answer groups of an interaction.
+            all_equal_inputs_unique = set()
+            all_equal_inputs = []
+
+            answer_groups = state['interaction']['answer_groups']
+            for answer_group in answer_groups:
+                # Check for collisions with migrating
+                # FuzzyEquals => Equals between answer groups.
+                equal_inputs = []
+                equal_inputs_unique = set()
+                answer_group_contains_fuzzy_equals = False
+                for rule_spec in answer_group['rule_specs']:
+                    rule_type = rule_spec['rule_type'].encode('utf-8')
+                    if (
+                            rule_type not in
+                            ['Equals', 'FuzzyEquals', 'CaseSensitiveEquals']
+                    ):
+                        continue
+                    rule_input = rule_spec[
+                        'inputs']['x'].encode('utf-8')
+                    # Because Equals does not check for case, we use lower here.
+                    equal_inputs_unique.add(rule_input.lower())
+                    equal_inputs.append('%s(%s)' % (rule_type, rule_input))
+
+                    if rule_type == 'FuzzyEquals':
+                        answer_group_contains_fuzzy_equals = True
+
+                collisions = (
+                    all_equal_inputs_unique.intersection(
+                        equal_inputs_unique)
+                )
+                all_equal_inputs_unique = (
+                    all_equal_inputs_unique.union(equal_inputs_unique))
+                all_equal_inputs.append(
+                    '%s=>Outcome(%s)' % (
+                        '|'.join(equal_inputs),
+                        answer_group[
+                            'outcome']['feedback']['html'].encode('utf-8')
+                    )
+                )
+                if answer_group_contains_fuzzy_equals:
+                    yield (
+                        'FUZZY_EQUALS_CATCH_COLLISION',
+                        (
+                            all_equal_inputs,
+                            item.id.encode('utf-8'),
+                            state_name.encode('utf-8')
+                        )
+                    )
 
     @staticmethod
     def reduce(key, values):
