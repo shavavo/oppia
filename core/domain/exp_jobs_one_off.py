@@ -883,16 +883,18 @@ class RulesTextInputMigrationAuditOneOffJob(jobs.BaseMapReduceOneOffJobManager):
             interaction_id = state['interaction']['id']
             if interaction_id != 'TextInput':
                 continue
-            answer_groups = state['interaction']['answer_groups']
 
             # Track inputs of Equals, FuzzyEquals, and CaseSensitiveEquals
             # within all answer groups of an interaction.
             all_equal_inputs_unique = set()
             all_equal_inputs = []
 
-            for answer_group in answer_groups:
-                # Check for collisions with migrating FuzzyEquals => Equals
-                # and CaseSensitiveEquals => Equals within an answer group.
+            answer_groups = state['interaction']['answer_groups']
+            # Traverse answer groups backwards because we only care about
+            # collisions that occur after a migrated rule.
+            for answer_group in reversed(answer_groups):
+                # Check for collisions with migrating
+                # CaseSensitiveEquals => Equals within an answer group.
                 equal_inputs_unique = set()
                 equal_inputs = []
                 for rule_spec in answer_group['rule_specs']:
@@ -902,26 +904,31 @@ class RulesTextInputMigrationAuditOneOffJob(jobs.BaseMapReduceOneOffJobManager):
                             ['Equals', 'FuzzyEquals', 'CaseSensitiveEquals']
                     ):
                         continue
-                    # Because Equals does not check for case, we use lower here
-                    # to check for collisions.
                     rule_input = rule_spec[
-                        'inputs']['x'].encode('utf-8').lower()
-                    equal_inputs_unique.add(rule_input)
-                    equal_inputs.append((rule_type, rule_input))
+                        'inputs']['x'].encode('utf-8')
+                    # Because Equals does not check for case, we use lower here.
+                    equal_inputs_unique.add(rule_input.lower())
+                    equal_inputs.append('%s(%s)' % (rule_type, rule_input))
 
-                # Check for collisions with migrating FuzzyEquals => Equals
-                # and CaseSensitiveEquals => Equals between all answer groups.
-                answer_groups_equal_input_collisions = (
+                # Check for collisions with migrating
+                # CaseSensitiveEquals => Equals between all encountered
+                # answer groups.
+                collisions = (
                     all_equal_inputs_unique.intersection(equal_inputs_unique))
                 all_equal_inputs_unique = (
                     all_equal_inputs_unique.union(equal_inputs_unique))
-                all_equal_inputs.extend(equal_inputs)
+                all_equal_inputs.append(
+                    '%s=>%s' % (
+                        equal_inputs.join('|'),
+                        answer_group.outcome.feedback.html.encode('utf-8')
+                    )
+                )
 
-                if len(answer_groups_equal_input_collisions) > 0:
+                if len(collisions) > 0:
                     yield (
                         'ANSWER_GROUP_EXTERNAL_COLLISION',
                         (
-                            all_equal_inputs,
+                            list(reverse(all_equal_inputs)),
                             item.id.encode('utf-8'),
                             state_name.encode('utf-8')
                         )
@@ -931,4 +938,7 @@ class RulesTextInputMigrationAuditOneOffJob(jobs.BaseMapReduceOneOffJobManager):
 
     @staticmethod
     def reduce(key, values):
-        yield (key, values)
+        if key == 'ANSWER_GROUP_EXTERNAL_NO_COLLISIONS_SO_FAR':
+            yield (key, len(values))
+        else:
+            yield (key, values)
