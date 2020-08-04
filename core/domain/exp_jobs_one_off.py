@@ -864,6 +864,7 @@ class RuleSpecTypeAuditOneOffJob(jobs.BaseMapReduceOneOffJobManager):
         else:
             yield (key, values)
 
+
 class RulesTextInputMigrationAuditOneOffJob(jobs.BaseMapReduceOneOffJobManager):
     """Job that produces a list of (rule type, list of all rule inputs) for
     each rule type.
