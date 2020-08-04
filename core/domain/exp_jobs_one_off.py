@@ -997,7 +997,7 @@ class RulesTextInputMigrationAuditOneOffJob(jobs.BaseMapReduceOneOffJobManager):
                             'outcome']['feedback']['html'].encode('utf-8')
                     )
                 )
-                if answer_group_contains_fuzzy_equals:
+                if answer_group_contains_fuzzy_equals and len(collisions) > 0:
                     yield (
                         'FUZZY_EQUALS_CATCH_COLLISION',
                         (
