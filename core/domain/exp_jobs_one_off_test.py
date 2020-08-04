@@ -3684,206 +3684,168 @@ class RulesTextInputMigrationAuditOneOffJobTests(test_utils.GenericTestBase):
             ]
         )
 
-    # def test_explorations_with_rule_specs_with_multiple_rule_types(self):
-    #     """Test the audit job output when there are explorations with
-    #     RuleSpecs that contain multiple rule types.
-    #     """
-    #     exploration_with_rule_specs = (
-    #         exp_domain.Exploration.create_default_exploration(
-    #             self.EXP_ID, title=self.EXP_TITLE, category='category'))
+    def test_explorations_with_rule_specs_with_non_critical_collision(self):
+        """Test the audit job output when there are explorations with
+        RuleSpecs that would collide between AnswerGroups after a migration
+        of FuzzyEquals and CaseSensitiveEquals to Equals but are user generated
+        and non critical.
+        """
+        exploration_with_rule_specs = (
+            exp_domain.Exploration.create_default_exploration(
+                self.EXP_ID, title=self.EXP_TITLE, category='category'))
 
-    #     exploration_with_rule_specs.add_states(['State1'])
-    #     state1 = exploration_with_rule_specs.states['State1']
+        exploration_with_rule_specs.add_states(['State1'])
+        state1 = exploration_with_rule_specs.states['State1']
 
-    #     answer_group_dict = {
-    #         'outcome': {
-    #             'dest': 'Introduction',
-    #             'feedback': {
-    #                 'content_id': 'feedback_1',
-    #                 'html': '<p>Feedback</p>'
-    #             },
-    #             'labelled_as_correct': False,
-    #             'param_changes': [],
-    #             'refresher_exploration_id': None,
-    #             'missing_prerequisite_skill_id': None
-    #         },
-    #         'rule_specs': [{
-    #             'inputs': {
-    #                 'x': u'test'
-    #             },
-    #             'rule_type': 'Equals'
-    #         }, {
-    #             'inputs': {
-    #                 'x': u'test2'
-    #             },
-    #             'rule_type': 'FuzzyEquals'
-    #         }],
-    #         'training_data': [],
-    #         'tagged_skill_misconception_id': None
-    #     }
-    #     state1.update_interaction_id('TextInput')
-    #     state1.update_interaction_answer_groups([answer_group_dict])
+        answer_group_dict = {
+            'outcome': {
+                'dest': 'Introduction',
+                'feedback': {
+                    'content_id': 'feedback_1',
+                    'html': u'<p>Feedback</p>'
+                },
+                'labelled_as_correct': False,
+                'param_changes': [],
+                'refresher_exploration_id': None,
+                'missing_prerequisite_skill_id': None
+            },
+            'rule_specs': [{
+                'inputs': {
+                    'x': u'Testing'
+                },
+                'rule_type': 'Equals'
+            }],
+            'training_data': [],
+            'tagged_skill_misconception_id': None
+        }
+        answer_group_dict2 = {
+            'outcome': {
+                'dest': 'Introduction',
+                'feedback': {
+                    'content_id': 'feedback_2',
+                    'html': u'<p>Feedback</p>'
+                },
+                'labelled_as_correct': False,
+                'param_changes': [],
+                'refresher_exploration_id': None,
+                'missing_prerequisite_skill_id': None
+            },
+            'rule_specs': [{
+                'inputs': {
+                    'x': u'testing'
+                },
+                'rule_type': 'Equals'
+            }],
+            'training_data': [],
+            'tagged_skill_misconception_id': None
+        }
+        state1.update_interaction_id('TextInput')
+        state1.update_interaction_answer_groups(
+            [answer_group_dict, answer_group_dict2])
 
-    #     exp_services.save_new_exploration(
-    #         self.albert_id, exploration_with_rule_specs)
+        exp_services.save_new_exploration(
+            self.albert_id, exploration_with_rule_specs)
 
-    #     job_id = exp_jobs_one_off.RuleSpecTypeAuditOneOffJob.create_new()
-    #     exp_jobs_one_off.RuleSpecTypeAuditOneOffJob.enqueue(job_id)
-    #     self.process_and_flush_pending_tasks()
+        job_id = (
+            exp_jobs_one_off.RulesTextInputMigrationAuditOneOffJob.create_new())
+        exp_jobs_one_off.RulesTextInputMigrationAuditOneOffJob.enqueue(job_id)
+        self.process_and_flush_pending_tasks()
 
-    #     actual_output = exp_jobs_one_off.RuleSpecTypeAuditOneOffJob.get_output(
-    #         job_id)
-    #     self.assertEqual(
-    #         actual_output,
-    #         [
-    #             u'[u\'ANSWER_GROUP_LOCAL_NO_COLLISIONS\', 1]',
-    #             u'[u\'ANSWER_GROUP_EXTERNAL_NO_COLLISIONS_SO_FAR\', 1]',
-    #             (
-    #                 u'[u\'MULTIPLE_RULE_TYPES_IN_ANSWER_GROUP\', [u"([\'Equals'
-    #                 '\', \'FuzzyEquals\'], \'exp_id0\', \'State1\')"]]')
-    #         ]
-    #     )
+        actual_output = (
+            exp_jobs_one_off.RulesTextInputMigrationAuditOneOffJob.get_output(
+                job_id)
+        )
+        self.assertEqual(
+            actual_output,
+            [
+                u'[u\'ANSWER_GROUP_EXTERNAL_NO_COLLISIONS_SO_FAR\', 1]',
+                (
+                    u'[u\'ANSWER_GROUP_NONCRITICAL_EXTERNAL_COLLISION\', [u"([u'
+                    '\'Equals(Testing)=>Outcome(<p>Feedback</p>)\', u\''
+                    'Equals(testing)=>Outcome(<p>Feedback</p>)\'], \'exp_id0\','
+                    ' \'State1\')"]]')
+            ]
+        )
 
-    # def test_explorations_with_rule_specs_with_local_equals_collision(self):
-    #     """Test the audit job output when there are explorations with
-    #     RuleSpecs that would collide inside an AnswerGroup after a migration of
-    #     FuzzyEquals and CaseSensitiveEquals to Equals.
-    #     """
-    #     exploration_with_rule_specs = (
-    #         exp_domain.Exploration.create_default_exploration(
-    #             self.EXP_ID, title=self.EXP_TITLE, category='category'))
+    def test_explorations_with_rule_specs_with_critical_collision(self):
+        """Test the audit job output when there are explorations with
+        RuleSpecs that would collide between AnswerGroups after a migration
+        of FuzzyEquals and CaseSensitiveEquals to Equals.
+        """
+        exploration_with_rule_specs = (
+            exp_domain.Exploration.create_default_exploration(
+                self.EXP_ID, title=self.EXP_TITLE, category='category'))
 
-    #     exploration_with_rule_specs.add_states(['State1'])
-    #     state1 = exploration_with_rule_specs.states['State1']
+        exploration_with_rule_specs.add_states(['State1'])
+        state1 = exploration_with_rule_specs.states['State1']
 
-    #     answer_group_dict = {
-    #         'outcome': {
-    #             'dest': 'Introduction',
-    #             'feedback': {
-    #                 'content_id': 'feedback_1',
-    #                 'html': '<p>Feedback</p>'
-    #             },
-    #             'labelled_as_correct': False,
-    #             'param_changes': [],
-    #             'refresher_exploration_id': None,
-    #             'missing_prerequisite_skill_id': None
-    #         },
-    #         'rule_specs': [{
-    #             'inputs': {
-    #                 'x': u'Testing'
-    #             },
-    #             'rule_type': 'Equals'
-    #         }, {
-    #             'inputs': {
-    #                 'x': u'testing'
-    #             },
-    #             'rule_type': 'FuzzyEquals'
-    #         }],
-    #         'training_data': [],
-    #         'tagged_skill_misconception_id': None
-    #     }
-    #     state1.update_interaction_id('TextInput')
-    #     state1.update_interaction_answer_groups([answer_group_dict])
+        answer_group_dict = {
+            'outcome': {
+                'dest': 'Introduction',
+                'feedback': {
+                    'content_id': 'feedback_1',
+                    'html': '<p>Feedback</p>'
+                },
+                'labelled_as_correct': False,
+                'param_changes': [],
+                'refresher_exploration_id': None,
+                'missing_prerequisite_skill_id': None
+            },
+            'rule_specs': [{
+                'inputs': {
+                    'x': u'Testing'
+                },
+                'rule_type': 'CaseSensitiveEquals'
+            }],
+            'training_data': [],
+            'tagged_skill_misconception_id': None
+        }
+        answer_group_dict2 = {
+            'outcome': {
+                'dest': 'Introduction',
+                'feedback': {
+                    'content_id': 'feedback_2',
+                    'html': '<p>Feedback</p>'
+                },
+                'labelled_as_correct': False,
+                'param_changes': [],
+                'refresher_exploration_id': None,
+                'missing_prerequisite_skill_id': None
+            },
+            'rule_specs': [{
+                'inputs': {
+                    'x': u'testing'
+                },
+                'rule_type': 'Equals'
+            }],
+            'training_data': [],
+            'tagged_skill_misconception_id': None
+        }
+        state1.update_interaction_id('TextInput')
+        state1.update_interaction_answer_groups(
+            [answer_group_dict, answer_group_dict2])
 
-    #     exp_services.save_new_exploration(
-    #         self.albert_id, exploration_with_rule_specs)
+        exp_services.save_new_exploration(
+            self.albert_id, exploration_with_rule_specs)
 
-    #     job_id = exp_jobs_one_off.RuleSpecTypeAuditOneOffJob.create_new()
-    #     exp_jobs_one_off.RuleSpecTypeAuditOneOffJob.enqueue(job_id)
-    #     self.process_and_flush_pending_tasks()
+        job_id = (
+            exp_jobs_one_off.RulesTextInputMigrationAuditOneOffJob.create_new())
+        exp_jobs_one_off.RulesTextInputMigrationAuditOneOffJob.enqueue(job_id)
+        self.process_and_flush_pending_tasks()
 
-    #     actual_output = exp_jobs_one_off.RuleSpecTypeAuditOneOffJob.get_output(
-    #         job_id)
-    #     self.assertEqual(
-    #         actual_output,
-    #         [
-    #             u'[u\'ANSWER_GROUP_EXTERNAL_NO_COLLISIONS_SO_FAR\', 1]',
-    #             (
-    #                 u'[u\'ANSWER_GROUP_LOCAL_COLLISION\', [u"([(\'Equals\', \''
-    #                 'testing\'), (\'FuzzyEquals\', \'testing\')], \'exp_id0\','
-    #                 ' \'State1\')"]]'),
-    #             (
-    #                 u'[u\'MULTIPLE_RULE_TYPES_IN_ANSWER_GROUP\', [u"(['
-    #                 '\'Equals\', \'FuzzyEquals\'], \'exp_id0\', \'State1\')"]]')
-    #         ]
-    #     )
-
-    # def test_explorations_with_rule_specs_with_external_equals_collision(self):
-    #     """Test the audit job output when there are explorations with
-    #     RuleSpecs that would collide between AnswerGroups after a migration of
-    #     FuzzyEquals and CaseSensitiveEquals to Equals.
-    #     """
-    #     exploration_with_rule_specs = (
-    #         exp_domain.Exploration.create_default_exploration(
-    #             self.EXP_ID, title=self.EXP_TITLE, category='category'))
-
-    #     exploration_with_rule_specs.add_states(['State1'])
-    #     state1 = exploration_with_rule_specs.states['State1']
-
-    #     answer_group_dict = {
-    #         'outcome': {
-    #             'dest': 'Introduction',
-    #             'feedback': {
-    #                 'content_id': 'feedback_1',
-    #                 'html': '<p>Feedback</p>'
-    #             },
-    #             'labelled_as_correct': False,
-    #             'param_changes': [],
-    #             'refresher_exploration_id': None,
-    #             'missing_prerequisite_skill_id': None
-    #         },
-    #         'rule_specs': [{
-    #             'inputs': {
-    #                 'x': u'Testing'
-    #             },
-    #             'rule_type': 'Equals'
-    #         }],
-    #         'training_data': [],
-    #         'tagged_skill_misconception_id': None
-    #     }
-    #     answer_group_dict2 = {
-    #         'outcome': {
-    #             'dest': 'Introduction',
-    #             'feedback': {
-    #                 'content_id': 'feedback_2',
-    #                 'html': '<p>Feedback</p>'
-    #             },
-    #             'labelled_as_correct': False,
-    #             'param_changes': [],
-    #             'refresher_exploration_id': None,
-    #             'missing_prerequisite_skill_id': None
-    #         },
-    #         'rule_specs': [{
-    #             'inputs': {
-    #                 'x': u'testing'
-    #             },
-    #             'rule_type': 'CaseSensitiveEquals'
-    #         }],
-    #         'training_data': [],
-    #         'tagged_skill_misconception_id': None
-    #     }
-    #     state1.update_interaction_id('TextInput')
-    #     state1.update_interaction_answer_groups(
-    #         [answer_group_dict, answer_group_dict2])
-
-    #     exp_services.save_new_exploration(
-    #         self.albert_id, exploration_with_rule_specs)
-
-    #     job_id = exp_jobs_one_off.RuleSpecTypeAuditOneOffJob.create_new()
-    #     exp_jobs_one_off.RuleSpecTypeAuditOneOffJob.enqueue(job_id)
-    #     self.process_and_flush_pending_tasks()
-
-    #     actual_output = exp_jobs_one_off.RuleSpecTypeAuditOneOffJob.get_output(
-    #         job_id)
-    #     self.assertEqual(
-    #         actual_output,
-    #         [
-    #             (
-    #                 u'[u\'ANSWER_GROUP_EXTERNAL_COLLISION\', [u"([(\'Equals\', '
-    #                 '\'testing\'), (\'CaseSensitiveEquals\', \'testing\')], '
-    #                 '\'exp_id0\', \'State1\')"]]'),
-    #             u'[u\'ANSWER_GROUP_LOCAL_NO_COLLISIONS\', 2]',
-    #             u'[u\'ONE_RULE_TYPE_IN_ANSWER_GROUP\', 2]',
-    #             u'[u\'ANSWER_GROUP_EXTERNAL_NO_COLLISIONS_SO_FAR\', 1]',
-    #         ]
-    #     )
+        actual_output = (
+            exp_jobs_one_off.RulesTextInputMigrationAuditOneOffJob.get_output(
+                job_id)
+        )
+        self.assertEqual(
+            actual_output,
+            [
+                (
+                    u'[u\'ANSWER_GROUP_CRITICAL_EXTERNAL_COLLISION\', [u"([u\'C'
+                    'aseSensitiveEquals(Testing)=>Outcome(<p>Feedback</p>)\', u'
+                    '\'Equals(testing)=>Outcome(<p>Feedback</p>)\'], \'exp_id0'
+                    '\', \'State1\')"]]'
+                ),
+                u'[u\'ANSWER_GROUP_EXTERNAL_NO_COLLISIONS_SO_FAR\', 1]'
+            ]
+        )

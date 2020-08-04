@@ -895,8 +895,9 @@ class RulesTextInputMigrationAuditOneOffJob(jobs.BaseMapReduceOneOffJobManager):
             for answer_group in reversed(answer_groups):
                 # Check for collisions with migrating
                 # CaseSensitiveEquals => Equals within an answer group.
-                equal_inputs_unique = set()
                 equal_inputs = []
+                equal_inputs_unique = set()
+                case_sensitive_equal_inputs_unique = set()
                 for rule_spec in answer_group['rule_specs']:
                     rule_type = rule_spec['rule_type'].encode('utf-8')
                     if (
@@ -910,25 +911,43 @@ class RulesTextInputMigrationAuditOneOffJob(jobs.BaseMapReduceOneOffJobManager):
                     equal_inputs_unique.add(rule_input.lower())
                     equal_inputs.append('%s(%s)' % (rule_type, rule_input))
 
+                    if rule_type == 'CaseSensitiveEquals':
+                        case_sensitive_equal_inputs_unique.add(
+                            rule_input.lower())
+
                 # Check for collisions with migrating
                 # CaseSensitiveEquals => Equals between all encountered
                 # answer groups.
-                collisions = (
+                critcal_collisions = (
+                    all_equal_inputs_unique.intersection(
+                        case_sensitive_equal_inputs_unique)
+                )
+                all_collisions = (
                     all_equal_inputs_unique.intersection(equal_inputs_unique))
                 all_equal_inputs_unique = (
                     all_equal_inputs_unique.union(equal_inputs_unique))
                 all_equal_inputs.append(
-                    '%s=>%s' % (
-                        equal_inputs.join('|'),
-                        answer_group.outcome.feedback.html.encode('utf-8')
+                    '%s=>Outcome(%s)' % (
+                        '|'.join(equal_inputs),
+                        answer_group[
+                            'outcome']['feedback']['html'].encode('utf-8')
                     )
                 )
 
-                if len(collisions) > 0:
+                if len(critcal_collisions) > 0:
                     yield (
-                        'ANSWER_GROUP_EXTERNAL_COLLISION',
+                        'ANSWER_GROUP_CRITICAL_EXTERNAL_COLLISION',
                         (
-                            list(reverse(all_equal_inputs)),
+                            list(reversed(all_equal_inputs)),
+                            item.id.encode('utf-8'),
+                            state_name.encode('utf-8')
+                        )
+                    )
+                elif len(all_collisions) > 0:
+                    yield (
+                        'ANSWER_GROUP_NONCRITICAL_EXTERNAL_COLLISION',
+                        (
+                            list(reversed(all_equal_inputs)),
                             item.id.encode('utf-8'),
                             state_name.encode('utf-8')
                         )

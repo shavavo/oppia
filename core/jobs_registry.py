@@ -65,6 +65,7 @@ ONE_OFF_JOB_MANAGERS = [
     exp_jobs_one_off.MultipleChoiceInteractionOneOffJob,
     exp_jobs_one_off.RuleSpecAuditOneOffJob,
     exp_jobs_one_off.RuleSpecTypeAuditOneOffJob,
+    exp_jobs_one_off.RulesTextInputMigrationAuditOneOffJob,
     exp_jobs_one_off.ViewableExplorationsAuditJob,
     feedback_jobs_one_off.FeedbackThreadCacheOneOffJob,
     opportunity_jobs_one_off.ExplorationOpportunitySummaryModelRegenerationJob,
