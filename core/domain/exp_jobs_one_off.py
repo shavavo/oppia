@@ -931,7 +931,7 @@ class RulesTextInputMigrationAuditOneOffJob(jobs.BaseMapReduceOneOffJobManager):
                     '%s=>Outcome(%s)' % (
                         '|'.join(equal_inputs),
                         answer_group[
-                            'outcome']['feedback']['html'].encode('utf-8')
+                            'outcome']['feedback']['html']
                     )
                 )
 
@@ -994,7 +994,7 @@ class RulesTextInputMigrationAuditOneOffJob(jobs.BaseMapReduceOneOffJobManager):
                     '%s=>Outcome(%s)' % (
                         '|'.join(equal_inputs),
                         answer_group[
-                            'outcome']['feedback']['html'].encode('utf-8')
+                            'outcome']['feedback']['html']
                     )
                 )
                 if answer_group_contains_fuzzy_equals and len(collisions) > 0:
