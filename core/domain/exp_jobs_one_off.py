@@ -935,7 +935,6 @@ class RulesTextInputMigrationAuditOneOffJob(jobs.BaseMapReduceOneOffJobManager):
                             'outcome']['feedback']['html']
                     )
                 )
-
                 all_equal_inputs.append(equal_input.encode('utf-8'))
 
                 if len(critcal_collisions) > 0:
@@ -982,7 +981,8 @@ class RulesTextInputMigrationAuditOneOffJob(jobs.BaseMapReduceOneOffJobManager):
                         'inputs']['x'].encode('utf-8')
                     # Because Equals does not check for case, we use lower here.
                     equal_inputs_unique.add(rule_input.lower())
-                    equal_inputs.append('%s(%s)' % (rule_type, rule_input))
+                    equal_input = '%s(%s)' % (rule_type, rule_input)
+                    equal_inputs.append(equal_input.encode('utf-8'))
 
                     if rule_type == 'FuzzyEquals':
                         answer_group_contains_fuzzy_equals = True
@@ -993,13 +993,14 @@ class RulesTextInputMigrationAuditOneOffJob(jobs.BaseMapReduceOneOffJobManager):
                 )
                 all_equal_inputs_unique = (
                     all_equal_inputs_unique.union(equal_inputs_unique))
-                all_equal_inputs.append(
+                equal_input = (
                     '%s=>Outcome(%s)' % (
                         '|'.join(equal_inputs),
                         answer_group[
                             'outcome']['feedback']['html']
                     )
                 )
+                all_equal_inputs.append(equal_input.encode('utf-8'))
                 if answer_group_contains_fuzzy_equals and len(collisions) > 0:
                     yield (
                         'FUZZY_EQUALS_CATCH_COLLISION',

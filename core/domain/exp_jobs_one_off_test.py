@@ -3760,8 +3760,8 @@ class RulesTextInputMigrationAuditOneOffJobTests(test_utils.GenericTestBase):
             [
                 u'[u\'ANSWER_GROUP_EXTERNAL_NO_COLLISIONS_SO_FAR\', 1]',
                 (
-                    u'[u\'ANSWER_GROUP_NONCRITICAL_EXTERNAL_COLLISION\', [u"([u'
-                    '\'Equals(Testing)=>Outcome(<p>Feedback</p>)\', u\''
+                    u'[u\'ANSWER_GROUP_NONCRITICAL_EXTERNAL_COLLISION\', [u"(['
+                    '\'Equals(Testing)=>Outcome(<p>Feedback</p>)\', \''
                     'Equals(testing)=>Outcome(<p>Feedback</p>)\'], \'exp_id0\','
                     ' \'State1\')"]]')
             ]
@@ -3841,8 +3841,8 @@ class RulesTextInputMigrationAuditOneOffJobTests(test_utils.GenericTestBase):
             actual_output,
             [
                 (
-                    u'[u\'ANSWER_GROUP_CRITICAL_EXTERNAL_COLLISION\', [u"([u\'C'
-                    'aseSensitiveEquals(Testing)=>Outcome(<p>Feedback</p>)\', u'
+                    u'[u\'ANSWER_GROUP_CRITICAL_EXTERNAL_COLLISION\', [u"([\'C'
+                    'aseSensitiveEquals(Testing)=>Outcome(<p>Feedback</p>)\', '
                     '\'Equals(testing)=>Outcome(<p>Feedback</p>)\'], \'exp_id0'
                     '\', \'State1\')"]]'
                 ),
@@ -3926,13 +3926,13 @@ class RulesTextInputMigrationAuditOneOffJobTests(test_utils.GenericTestBase):
             [
                 u'[u\'ANSWER_GROUP_EXTERNAL_NO_COLLISIONS_SO_FAR\', 1]',
                 (
-                    u'[u\'ANSWER_GROUP_NONCRITICAL_EXTERNAL_COLLISION\', [u"([u'
-                    '\'Equals(Testing)=>Outcome(<p>Feedback</p>)\', u\'FuzzyEqu'
+                    u'[u\'ANSWER_GROUP_NONCRITICAL_EXTERNAL_COLLISION\', [u"(['
+                    '\'Equals(Testing)=>Outcome(<p>Feedback</p>)\', \'FuzzyEqu'
                     'als(testing)=>Outcome(<p>Feedback</p>)\'], \'exp_id0\', \''
                     'State1\')"]]'),
                 (
-                    u'[u\'FUZZY_EQUALS_CATCH_COLLISION\', [u"([u\'Equals(Testin'
-                    'g)=>Outcome(<p>Feedback</p>)\', u\'FuzzyEquals(testing)=>O'
+                    u'[u\'FUZZY_EQUALS_CATCH_COLLISION\', [u"([\'Equals(Testin'
+                    'g)=>Outcome(<p>Feedback</p>)\', \'FuzzyEquals(testing)=>O'
                     'utcome(<p>Feedback</p>)\'], \'exp_id0\', \'State1\')"]]')
             ]
         )
