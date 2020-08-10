@@ -59,6 +59,10 @@ export class AnswerClassificationService {
    * @param defaultOutcome - The default outcome of the interaction.
    * @param interactionRulesService The service which contains the explicit
    *     rules of that interaction.
+   * @param languageCode - The selected exploration language. The service
+   *     will attempt to find custom implementation of rules corresponding to
+   *     this language code. If it does not exist, then it will use the default
+   *     implementation of the rule.
    *
    * @return AnswerClassificationResult domain object.
    */
@@ -66,14 +70,38 @@ export class AnswerClassificationService {
       answer: InteractionAnswer,
       answerGroups: AnswerGroup[],
       defaultOutcome: Outcome,
-      interactionRulesService): AnswerClassificationResult {
+      interactionRulesService,
+      languageCode: string | null = null
+  ): AnswerClassificationResult {
     // Find the first group that contains a rule which returns true
     // TODO(bhenning): Implement training data classification.
     for (var i = 0; i < answerGroups.length; ++i) {
       const answerGroup = answerGroups[i];
       for (var j = 0; j < answerGroup.rules.length; ++j) {
         const rule = answerGroup.rules[j];
-        if (interactionRulesService[rule.type](answer, rule.inputs)) {
+
+        let ruleEvaluationFunctionName = rule.type;
+        if (languageCode !== null) {
+          // If there exists a custom evaluation function of the rule type for a
+          // language code, the name of the function is
+          // [rule type]ForLanguageCode[capitalized language code]. I.e. for a
+          // custom evaluation function of FuzzyEquals for language code 'zh',
+          // the rule implementation function is named
+          // 'FuzzyEqualsForLanguageCodeZH'.
+          const ruleLanguageDependentEvaluationFunctionName = (
+            `${rule.type}ForLanguageCode${languageCode.toUpperCase()}`);
+          if (interactionRulesService.hasOwnProperty(
+            ruleLanguageDependentEvaluationFunctionName)
+          ) {
+            ruleEvaluationFunctionName = (
+              ruleLanguageDependentEvaluationFunctionName);
+          }
+        }
+
+        // Retrieve the rule implementation from the RuleService.
+        const ruleFn = interactionRulesService[ruleEvaluationFunctionName];
+
+        if (ruleFn(answer, rule.inputs)) {
           return this.answerClassificationResultObjectFactory.createNew(
             answerGroup.outcome, i, j,
             ExplorationPlayerConstants.EXPLICIT_CLASSIFICATION);
@@ -111,14 +139,17 @@ export class AnswerClassificationService {
       stateName: string,
       interactionInOldState: Interaction,
       answer: InteractionAnswer,
-      interactionRulesService): AnswerClassificationResult {
+      interactionRulesService,
+      languageCode: string | null = null
+  ): AnswerClassificationResult {
     var answerClassificationResult = null;
 
     const answerGroups = interactionInOldState.answerGroups;
     const defaultOutcome = interactionInOldState.defaultOutcome;
     if (interactionRulesService) {
       answerClassificationResult = this.classifyAnswer(
-        answer, answerGroups, defaultOutcome, interactionRulesService);
+        answer, answerGroups, defaultOutcome, interactionRulesService,
+        languageCode);
     } else {
       this.alertsService.addWarning(
         'Something went wrong with the exploration: no ' +

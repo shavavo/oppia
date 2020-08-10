@@ -63,6 +63,11 @@ export class TextInputRulesService {
     }
     return editDistance[inputString.length][answerString.length] === 1;
   }
+  FuzzyEqualsForLanguageCodeZH(
+      answer: TextInputAnswer, inputs: TextInputRuleInputs
+  ): boolean {
+    return false;
+  }
   StartsWith(answer: TextInputAnswer, inputs: TextInputRuleInputs): boolean {
     var normalizedAnswer = this.nws.transform(answer);
     var normalizedInput = this.nws.transform(inputs.x);
