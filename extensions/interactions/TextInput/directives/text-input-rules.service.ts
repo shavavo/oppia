@@ -17,6 +17,7 @@
  */
 import { downgradeInjectable } from '@angular/upgrade/static';
 import { Injectable } from '@angular/core';
+import pinyin from 'chinese-to-pinyin';
 
 import { NormalizeWhitespacePipe } from
   'filters/string-utility-filters/normalize-whitespace.pipe';
@@ -66,7 +67,10 @@ export class TextInputRulesService {
   FuzzyEqualsForLanguageCodeZH(
       answer: TextInputAnswer, inputs: TextInputRuleInputs
   ): boolean {
-    return false;
+    return (
+      pinyin(answer, {removeTone: true}) ===
+      pinyin(inputs.x, {removeTone: true})
+    );
   }
   StartsWith(answer: TextInputAnswer, inputs: TextInputRuleInputs): boolean {
     var normalizedAnswer = this.nws.transform(answer);

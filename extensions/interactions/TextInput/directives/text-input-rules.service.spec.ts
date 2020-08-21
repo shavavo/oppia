@@ -45,6 +45,25 @@ describe('Text Input rules service', () => {
     expect(tirs.Equals('abc', RULE_INPUT)).toBe(false);
   });
 
+  it('should have a correct \'equals\' rule for Chinese (ZH)', () => {
+    const CHINESE_RULE_INPUT = {
+      x: '儿子'
+    };
+
+    expect(
+      tirs.FuzzyEqualsForLanguageCodeZH('儿子', CHINESE_RULE_INPUT)
+    ).toBe(true);
+    expect(
+      tirs.FuzzyEqualsForLanguageCodeZH('耳子', CHINESE_RULE_INPUT)
+    ).toBe(true);
+    expect(
+      tirs.FuzzyEqualsForLanguageCodeZH(' 耳  \n子 ', CHINESE_RULE_INPUT)
+    ).toBe(true);
+    expect(
+      tirs.FuzzyEqualsForLanguageCodeZH('你好', CHINESE_RULE_INPUT)
+    ).toBe(false);
+  });
+
   it('should have a correct \'fuzzy equals\' rule', () => {
     expect(tirs.FuzzyEquals('ABC DEF', RULE_INPUT)).toBe(true);
     expect(tirs.FuzzyEquals('abc def', RULE_INPUT)).toBe(true);
