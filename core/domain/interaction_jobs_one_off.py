@@ -206,3 +206,134 @@ class InteractionCustomizationArgsValidationOneOffJob(
     @staticmethod
     def reduce(key, values):
         yield (key, values)
+
+
+class RuleInputToCustomizationArgsMappingOneOffJob(jobs.BaseMapReduceOneOffJobManager):
+    """Job that produces a list of (exploration, state) pairs that use the item
+    selection or drag and drop sort interaction and that have rules that do not
+    match the answer choices.
+    """
+
+    @classmethod
+    def entity_classes_to_map_over(cls):
+        return [exp_models.ExplorationModel]
+
+    @staticmethod
+    def map(item):
+        if item.deleted:
+            return
+
+        def check_rule_inputs(value_type, value, choices):
+            """Checks that the html in SetOfHtmlString, ListOfSetsOfHtmlStrings,
+            and DragAndDropHtmlString rule inputs have associated content ids
+            in choices.
+
+            Args:
+                value_type: str. The type of the value.
+                value: *. The value to migrate.
+                choices: list(dict). The list of subtitled html dicts to find
+                    content ids from.
+
+            Returns:
+                *. The migrated rule input.
+            """
+            if value_type == 'DragAndDropHtmlString':
+                return value in choices
+
+            if value_type == 'SetOfHtmlString':
+                return all(
+                    check_rule_inputs(
+                        'DragAndDropHtmlString', html, choices
+                    ) for html in value
+                )
+            
+            if value_type == 'ListOfSetsOfHtmlStrings':
+                return all(
+                    check_rule_inputs(
+                        'SetOfHtmlString', html_set, choices
+                    ) for html_set in value
+                )
+
+        exploration = exp_fetchers.get_exploration_from_model(item)
+        for state_name, state in exploration.states.items():            
+            if state.interaction.id not in [
+                'DragAndDropSortInput', 'ItemSelectionInput']:
+                continue
+
+            choices = [
+                choice.html
+                for choice in state.interaction.customization_args[
+                    'choices'].value
+            ]
+
+            for group in state.interaction.answer_groups:
+                for rule_spec in group.rule_specs:
+                    rule_inputs = rule_spec.inputs
+                    rule_type = rule_spec.rule_type
+                    if state.interaction.id == 'ItemSelectionInput':
+                        # For all rule inputs for ItemSelectionInput, the x
+                        # input is of type SetOfHtmlString.
+                        if not check_rule_inputs(
+                            'SetOfHtmlString', rule_inputs['x'], choices
+                        ):
+                            yield (
+                                item.id,
+                                '%s: %s: %s' % (
+                                    state_name.encode('utf-8'),
+                                    str(rule_inputs).encode('utf-8'),
+                                    str(choices).encode('utf-8')))
+                    if state.interaction.id == 'DragAndDropSortInput':
+                        if rule_type in [
+                            'IsEqualToOrdering',
+                            'IsEqualToOrderingWithOneItemAtIncorrectPosition'
+                        ]:
+                            # For rule type IsEqualToOrdering and
+                            # IsEqualToOrderingWithOneItemAtIncorrectPosition,
+                            # the x is of type ListOfSetsOfHtmlStrings.
+                            if not check_rule_inputs(
+                                'ListOfSetsOfHtmlStrings',
+                                rule_inputs['x'],
+                                choices
+                            ):
+                                yield (
+                                    item.id,
+                                    '%s: %s: %s' % (
+                                        state_name.encode('utf-8'),
+                                        str(rule_inputs).encode('utf-8'),
+                                        str(choices).encode('utf-8')))
+                        elif rule_type == 'HasElementXAtPositionY':
+                            # For rule type HasElementXAtPositionY,
+                            # the x input is of type DragAndDropHtmlString. The
+                            # y input is of type DragAndDropPositiveInt (no
+                            # validation required).
+                            if not check_rule_inputs(
+                                'DragAndDropHtmlString',
+                                rule_inputs['x'],
+                                choices
+                            ):
+                                yield (
+                                    item.id,
+                                    '%s: %s: %s' % (
+                                        state_name.encode('utf-8'),
+                                        str(rule_inputs).encode('utf-8'),
+                                        str(choices).encode('utf-8')))
+                        elif rule_type == 'HasElementXBeforeElementY':
+                            # For rule type HasElementXBeforeElementY,
+                            # the x and y inputs are of type
+                            # DragAndDropHtmlString.
+                            for rule_input_name in ['x', 'y']:
+                                if not check_rule_inputs(
+                                    'DragAndDropHtmlString',
+                                    rule_inputs[rule_input_name],
+                                    choices
+                                ):
+                                    yield (
+                                        item.id,
+                                        '%s: %s: %s' % (
+                                            state_name.encode('utf-8'),
+                                            str(rule_inputs).encode('utf-8'),
+                                            str(choices).encode('utf-8')))
+                                            
+    @staticmethod
+    def reduce(key, values):
+        yield (key, values)
