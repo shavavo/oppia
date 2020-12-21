@@ -265,6 +265,34 @@ class RuleInputToCustomizationArgsMappingOneOffJob(jobs.BaseMapReduceOneOffJobMa
                 for choice in state.interaction.customization_args[
                     'choices'].value
             ]
+            solution = state.interaction.solution
+
+            if solution is not None:
+                if state.interaction.id == 'ItemSelectionInput':
+                    if not check_rule_inputs(
+                        'SetOfHtmlString', solution.correct_answer, choices
+                    ):
+                        yield (
+                            item.id,
+                            '%s %s: %s: %s' % (
+                                state_name.encode('utf-8'),
+                                'Answer',
+                                str(solution.correct_answer).encode('utf-8'),
+                                str(choices).encode('utf-8')))
+                
+                if state.interaction.id == 'DragAndDropSortInput':
+                    if not check_rule_inputs(
+                        'ListOfSetsOfHtmlStrings',
+                        solution.correct_answer,
+                        choices
+                    ):
+                        yield (
+                            item.id,
+                            '%s %s: %s: %s' % (
+                                state_name.encode('utf-8'),
+                                'Answer',
+                                str(solution.correct_answer).encode('utf-8'),
+                                str(choices).encode('utf-8')))
 
             for group in state.interaction.answer_groups:
                 for rule_spec in group.rule_specs:
@@ -278,8 +306,9 @@ class RuleInputToCustomizationArgsMappingOneOffJob(jobs.BaseMapReduceOneOffJobMa
                         ):
                             yield (
                                 item.id,
-                                '%s: %s: %s' % (
+                                '%s %s: %s: %s' % (
                                     state_name.encode('utf-8'),
+                                    'Rule Input',
                                     str(rule_inputs).encode('utf-8'),
                                     str(choices).encode('utf-8')))
                     if state.interaction.id == 'DragAndDropSortInput':
@@ -297,8 +326,9 @@ class RuleInputToCustomizationArgsMappingOneOffJob(jobs.BaseMapReduceOneOffJobMa
                             ):
                                 yield (
                                     item.id,
-                                    '%s: %s: %s' % (
+                                    '%s %s: %s: %s' % (
                                         state_name.encode('utf-8'),
+                                        'Rule Input',
                                         str(rule_inputs).encode('utf-8'),
                                         str(choices).encode('utf-8')))
                         elif rule_type == 'HasElementXAtPositionY':
@@ -313,8 +343,9 @@ class RuleInputToCustomizationArgsMappingOneOffJob(jobs.BaseMapReduceOneOffJobMa
                             ):
                                 yield (
                                     item.id,
-                                    '%s: %s: %s' % (
+                                    '%s %s: %s: %s' % (
                                         state_name.encode('utf-8'),
+                                        'Rule Input',
                                         str(rule_inputs).encode('utf-8'),
                                         str(choices).encode('utf-8')))
                         elif rule_type == 'HasElementXBeforeElementY':
@@ -329,8 +360,9 @@ class RuleInputToCustomizationArgsMappingOneOffJob(jobs.BaseMapReduceOneOffJobMa
                                 ):
                                     yield (
                                         item.id,
-                                        '%s: %s: %s' % (
+                                        '%s %s: %s: %s' % (
                                             state_name.encode('utf-8'),
+                                            'Rule Input',
                                             str(rule_inputs).encode('utf-8'),
                                             str(choices).encode('utf-8')))
                                             

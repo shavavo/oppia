@@ -23,6 +23,7 @@ from core.domain import exp_domain
 from core.domain import exp_services
 from core.domain import interaction_jobs_one_off
 from core.domain import rights_manager
+from core.domain import state_domain
 from core.domain import taskqueue_services
 from core.domain import user_services
 from core.platform import models
@@ -947,11 +948,29 @@ class RuleInputToCustomizationArgsMappingOneOffJobTests(test_utils.GenericTestBa
             'tagged_skill_misconception_id': None
         }]
 
+        solution1 = state_domain.Solution.from_dict('ItemSelectionInput', {
+            'answer_is_exclusive': True,
+            'correct_answer': ['<p>This is value2 for DragAndDropSort</p>'],
+            'explanation': {
+                'content_id': 'solution',
+                'html': ''
+            }
+        })
+
+        hint_list1 = [state_domain.Hint.from_dict({
+            'hint_content': {
+                'content_id': 'hint_0',
+                'html': ''
+            }
+        })]
+
         state1.update_interaction_id('ItemSelectionInput')
         state1.update_interaction_customization_args(customization_args_dict1)
         state1.update_next_content_id_index(2)
         state1.update_interaction_answer_groups(answer_group_list1)
         exp_services.save_new_exploration(self.albert_id, exploration)
+        state1.update_interaction_solution(solution1)
+        state1.update_interaction_hints(hint_list1)
 
         # Start RuleInputToCustomizationArgsMappingOneOffJob job on sample
         # exploration.
@@ -1006,10 +1025,28 @@ class RuleInputToCustomizationArgsMappingOneOffJobTests(test_utils.GenericTestBa
             'tagged_skill_misconception_id': None
         }]
 
+        solution2 = state_domain.Solution.from_dict('ItemSelectionInput', {
+            'answer_is_exclusive': True,
+            'correct_answer': ['<p>This is value3 for DragAndDropSort</p>'],
+            'explanation': {
+                'content_id': 'solution',
+                'html': ''
+            }
+        })
+
+        hint_list2 = [state_domain.Hint.from_dict({
+            'hint_content': {
+                'content_id': 'hint_0',
+                'html': ''
+            }
+        })]
+
         state2.update_interaction_id('ItemSelectionInput')
         state2.update_interaction_customization_args(customization_args_dict2)
         state2.update_next_content_id_index(2)
         state2.update_interaction_answer_groups(answer_group_list2)
+        state2.update_interaction_solution(solution2)
+        state2.update_interaction_hints(hint_list2)
 
         exp_services.save_new_exploration(self.albert_id, exploration)
 
@@ -1025,10 +1062,15 @@ class RuleInputToCustomizationArgsMappingOneOffJobTests(test_utils.GenericTestBa
             interaction_jobs_one_off
             .RuleInputToCustomizationArgsMappingOneOffJob.get_output(job_id))
         expected_output = [(
-            u'[u\'exp_id0\', [u"State2: {u\'x\': [u\'<p>This is value3 for Item'
-            'Selection</p>\']}: [u\'<p>This is value1 for ItemSelection</p>\', '
-            'u\'<p>This is value2 for ItemSelection</p>\']"]]'
-        )]
+            u'[u\'exp_id0\', [u"State2 Answer: [u\'<p>This is value3 for '
+            'DragAndDropSort</p>\']: [u\'<p>This is value1 for ItemSelection'
+            '</p>\', u\'<p>This is value2 for ItemSelection</p>\']", u"State2 '
+            'Rule Input: {u\'x\': [u\'<p>This is value3 for ItemSelection</p>\''
+            ']}: [u\'<p>This is value1 for ItemSelection</p>\', u\'<p>This is '
+            'value2 for ItemSelection</p>\']", u"State1 Answer: [u\'<p>This is '
+            'value2 for DragAndDropSort</p>\']: [u\'<p>This is value1 for '
+            'ItemSelection</p>\', u\'<p>This is value2 for ItemSelection</p>'
+            '\']"]]')]
         self.assertEqual(actual_output, expected_output)
 
     def test_exp_state_pairs_are_produced_for_drag_and_drop_sort_interactions(self):
@@ -1081,11 +1123,29 @@ class RuleInputToCustomizationArgsMappingOneOffJobTests(test_utils.GenericTestBa
             'tagged_skill_misconception_id': None
         }]
 
+        solution1 = state_domain.Solution.from_dict('DragAndDropSortInput', {
+            'answer_is_exclusive': True,
+            'correct_answer': [['<p>This is value2 for DragAndDropSort</p>']],
+            'explanation': {
+                'content_id': 'solution',
+                'html': ''
+            }
+        })
+
+        hint_list1 = [state_domain.Hint.from_dict({
+            'hint_content': {
+                'content_id': 'hint_0',
+                'html': ''
+            }
+        })]
+
         state1.update_interaction_id('DragAndDropSortInput')
         state1.update_interaction_customization_args(customization_args_dict1)
         state1.update_next_content_id_index(2)
         state1.update_interaction_answer_groups(answer_group_list1)
         exp_services.save_new_exploration(self.albert_id, exploration)
+        state1.update_interaction_solution(solution1)
+        state1.update_interaction_hints(hint_list1)
 
         # Start RuleInputToCustomizationArgsMappingOneOffJob job on sample
         # exploration.
@@ -1143,10 +1203,28 @@ class RuleInputToCustomizationArgsMappingOneOffJobTests(test_utils.GenericTestBa
             'tagged_skill_misconception_id': None
         }]
 
+        solution2 = state_domain.Solution.from_dict('DragAndDropSortInput', {
+            'answer_is_exclusive': True,
+            'correct_answer': [['<p>This is value3 for DragAndDropSort</p>']],
+            'explanation': {
+                'content_id': 'solution',
+                'html': ''
+            }
+        })
+
+        hint_list2 = [state_domain.Hint.from_dict({
+            'hint_content': {
+                'content_id': 'hint_0',
+                'html': ''
+            }
+        })]
+
         state2.update_interaction_id('DragAndDropSortInput')
         state2.update_interaction_customization_args(customization_args_dict2)
         state2.update_next_content_id_index(2)
         state2.update_interaction_answer_groups(answer_group_list2)
+        state2.update_interaction_solution(solution2)
+        state2.update_interaction_hints(hint_list2)
 
         exp_services.save_new_exploration(self.albert_id, exploration)
 
@@ -1162,13 +1240,17 @@ class RuleInputToCustomizationArgsMappingOneOffJobTests(test_utils.GenericTestBa
             interaction_jobs_one_off
             .RuleInputToCustomizationArgsMappingOneOffJob.get_output(job_id))
         expected_output = [(
-            u'[u\'exp_id0\', [u"State2: {u\'x\': [[u\'<p>This is value1 for Dra'
-            'gAndDropSort</p>\', u\'<p>This is value3 for DragAndDropSort</p>\''
-            ']]}: [u\'<p>This is value1 for DragAndDropSort</p>\', u\'<p>This i'
-            's value2 for DragAndDropSort</p>\']", u"State2: {u\'y\': u\'<p>Thi'
-            's is value1 for DragAndDropSort</p>\', u\'x\': u\'<p>This is value'
-            '3 for DragAndDropSort</p>\'}: [u\'<p>This is value1 for DragAndDro'
-            'pSort</p>\', u\'<p>This is value2 for DragAndDropSort</p>\']"]]'
+            u'[u\'exp_id0\', [u"State2 Answer: [[u\'<p>This is value3 for '
+            'DragAndDropSort</p>\']]: [u\'<p>This is value1 for DragAndDropSort'
+            '</p>\', u\'<p>This is value2 for DragAndDropSort</p>\']", '
+            'u"State2 Rule Input: {u\'x\': [[u\'<p>This is value1 for '
+            'DragAndDropSort</p>\', u\'<p>This is value3 for DragAndDropSort'
+            '</p>\']]}: [u\'<p>This is value1 for DragAndDropSort</p>\', '
+            'u\'<p>This is value2 for DragAndDropSort</p>\']", u"State2 Rule '
+            'Input: {u\'y\': u\'<p>This is value1 for DragAndDropSort</p>\', '
+            'u\'x\': u\'<p>This is value3 for DragAndDropSort</p>\'}: '
+            '[u\'<p>This is value1 for DragAndDropSort</p>\', u\'<p>This is '
+            'value2 for DragAndDropSort</p>\']"]]'
         )]
         self.assertEqual(actual_output, expected_output)
 
