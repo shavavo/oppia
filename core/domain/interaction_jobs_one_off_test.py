@@ -1062,8 +1062,8 @@ class RuleInputToCustomizationArgsMappingOneOffJobTests(test_utils.GenericTestBa
             interaction_jobs_one_off
             .RuleInputToCustomizationArgsMappingOneOffJob.get_output(job_id))
         expected_output = [(
-            u"[u'exp_id0', [u'State2 Answer', u'State2 Rule '
-            'Input', u'State1 Answer']]"
+            u'[u\'exp_id0\', [u\'State2 Answer\', u\'State2 Rule '
+            'Input\', u\'State1 Answer\']]'
         )]
         self.assertEqual(actual_output, expected_output)
 
@@ -1234,8 +1234,9 @@ class RuleInputToCustomizationArgsMappingOneOffJobTests(test_utils.GenericTestBa
             interaction_jobs_one_off
             .RuleInputToCustomizationArgsMappingOneOffJob.get_output(job_id))
         expected_output = [(
-            u"[u'exp_id0', [u'State2 Answer', u'State2 Rule Input', u'State2 '
-            'Rule Input']]")]
+            u'[u\'exp_id0\', [u\'State2 Answer\', u\'State2 Rule Input\', '
+            'u\'State2 Rule Input\']]'
+        )]
         self.assertEqual(actual_output, expected_output)
 
     def test_no_action_is_performed_for_deleted_exploration(self):
