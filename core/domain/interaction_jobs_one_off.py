@@ -274,11 +274,10 @@ class RuleInputToCustomizationArgsMappingOneOffJob(jobs.BaseMapReduceOneOffJobMa
                     ):
                         yield (
                             item.id,
-                            '%s %s: %s: %s' % (
+                            '%s %s' % (
                                 state_name.encode('utf-8'),
-                                'Answer',
-                                str(solution.correct_answer).encode('utf-8'),
-                                str(choices).encode('utf-8')))
+                                'Answer')
+                        )
                 
                 if state.interaction.id == 'DragAndDropSortInput':
                     if not check_rule_inputs(
@@ -288,11 +287,10 @@ class RuleInputToCustomizationArgsMappingOneOffJob(jobs.BaseMapReduceOneOffJobMa
                     ):
                         yield (
                             item.id,
-                            '%s %s: %s: %s' % (
+                            '%s %s' % (
                                 state_name.encode('utf-8'),
-                                'Answer',
-                                str(solution.correct_answer).encode('utf-8'),
-                                str(choices).encode('utf-8')))
+                                'Answer')
+                        )
 
             for group in state.interaction.answer_groups:
                 for rule_spec in group.rule_specs:
@@ -306,11 +304,10 @@ class RuleInputToCustomizationArgsMappingOneOffJob(jobs.BaseMapReduceOneOffJobMa
                         ):
                             yield (
                                 item.id,
-                                '%s %s: %s: %s' % (
+                                '%s %s' % (
                                     state_name.encode('utf-8'),
-                                    'Rule Input',
-                                    str(rule_inputs).encode('utf-8'),
-                                    str(choices).encode('utf-8')))
+                                    'Rule Input')
+                            )
                     if state.interaction.id == 'DragAndDropSortInput':
                         if rule_type in [
                             'IsEqualToOrdering',
@@ -326,11 +323,10 @@ class RuleInputToCustomizationArgsMappingOneOffJob(jobs.BaseMapReduceOneOffJobMa
                             ):
                                 yield (
                                     item.id,
-                                    '%s %s: %s: %s' % (
+                                    '%s %s' % (
                                         state_name.encode('utf-8'),
-                                        'Rule Input',
-                                        str(rule_inputs).encode('utf-8'),
-                                        str(choices).encode('utf-8')))
+                                        'Rule Input')
+                                )
                         elif rule_type == 'HasElementXAtPositionY':
                             # For rule type HasElementXAtPositionY,
                             # the x input is of type DragAndDropHtmlString. The
@@ -343,11 +339,10 @@ class RuleInputToCustomizationArgsMappingOneOffJob(jobs.BaseMapReduceOneOffJobMa
                             ):
                                 yield (
                                     item.id,
-                                    '%s %s: %s: %s' % (
+                                    '%s %s' % (
                                         state_name.encode('utf-8'),
-                                        'Rule Input',
-                                        str(rule_inputs).encode('utf-8'),
-                                        str(choices).encode('utf-8')))
+                                        'Rule Input')
+                                )
                         elif rule_type == 'HasElementXBeforeElementY':
                             # For rule type HasElementXBeforeElementY,
                             # the x and y inputs are of type
@@ -360,11 +355,10 @@ class RuleInputToCustomizationArgsMappingOneOffJob(jobs.BaseMapReduceOneOffJobMa
                                 ):
                                     yield (
                                         item.id,
-                                        '%s %s: %s: %s' % (
+                                        '%s %s' % (
                                             state_name.encode('utf-8'),
-                                            'Rule Input',
-                                            str(rule_inputs).encode('utf-8'),
-                                            str(choices).encode('utf-8')))
+                                            'Rule Input')
+                                    )
                                             
     @staticmethod
     def reduce(key, values):

@@ -1062,15 +1062,9 @@ class RuleInputToCustomizationArgsMappingOneOffJobTests(test_utils.GenericTestBa
             interaction_jobs_one_off
             .RuleInputToCustomizationArgsMappingOneOffJob.get_output(job_id))
         expected_output = [(
-            u'[u\'exp_id0\', [u"State2 Answer: [u\'<p>This is value3 for '
-            'DragAndDropSort</p>\']: [u\'<p>This is value1 for ItemSelection'
-            '</p>\', u\'<p>This is value2 for ItemSelection</p>\']", u"State2 '
-            'Rule Input: {u\'x\': [u\'<p>This is value3 for ItemSelection</p>\''
-            ']}: [u\'<p>This is value1 for ItemSelection</p>\', u\'<p>This is '
-            'value2 for ItemSelection</p>\']", u"State1 Answer: [u\'<p>This is '
-            'value2 for DragAndDropSort</p>\']: [u\'<p>This is value1 for '
-            'ItemSelection</p>\', u\'<p>This is value2 for ItemSelection</p>'
-            '\']"]]')]
+            u"[u'exp_id0', [u'State2 Answer', u'State2 Rule '
+            'Input', u'State1 Answer']]"
+        )]
         self.assertEqual(actual_output, expected_output)
 
     def test_exp_state_pairs_are_produced_for_drag_and_drop_sort_interactions(self):
@@ -1240,18 +1234,8 @@ class RuleInputToCustomizationArgsMappingOneOffJobTests(test_utils.GenericTestBa
             interaction_jobs_one_off
             .RuleInputToCustomizationArgsMappingOneOffJob.get_output(job_id))
         expected_output = [(
-            u'[u\'exp_id0\', [u"State2 Answer: [[u\'<p>This is value3 for '
-            'DragAndDropSort</p>\']]: [u\'<p>This is value1 for DragAndDropSort'
-            '</p>\', u\'<p>This is value2 for DragAndDropSort</p>\']", '
-            'u"State2 Rule Input: {u\'x\': [[u\'<p>This is value1 for '
-            'DragAndDropSort</p>\', u\'<p>This is value3 for DragAndDropSort'
-            '</p>\']]}: [u\'<p>This is value1 for DragAndDropSort</p>\', '
-            'u\'<p>This is value2 for DragAndDropSort</p>\']", u"State2 Rule '
-            'Input: {u\'y\': u\'<p>This is value1 for DragAndDropSort</p>\', '
-            'u\'x\': u\'<p>This is value3 for DragAndDropSort</p>\'}: '
-            '[u\'<p>This is value1 for DragAndDropSort</p>\', u\'<p>This is '
-            'value2 for DragAndDropSort</p>\']"]]'
-        )]
+            u"[u'exp_id0', [u'State2 Answer', u'State2 Rule Input', u'State2 '
+            'Rule Input']]")]
         self.assertEqual(actual_output, expected_output)
 
     def test_no_action_is_performed_for_deleted_exploration(self):
