@@ -1074,10 +1074,10 @@ class RuleInputToCustomizationArgsMappingOneOffJobTests(test_utils.GenericTestBa
         exploration = exp_domain.Exploration.create_default_exploration(
             self.VALID_EXP_ID, title='title', category='category')
 
-        exploration.add_states(['State1', 'State2'])
+        exploration.add_states(['State1', 'اختبارات'])
 
         state1 = exploration.states['State1']
-        state2 = exploration.states['State2']
+        state2 = exploration.states['اختبارات']
 
         customization_args_dict1 = {
             'choices': {'value': [{
@@ -1234,8 +1234,10 @@ class RuleInputToCustomizationArgsMappingOneOffJobTests(test_utils.GenericTestBa
             interaction_jobs_one_off
             .RuleInputToCustomizationArgsMappingOneOffJob.get_output(job_id))
         expected_output = [(
-            u'[u\'exp_id0\', [u\'State2 Answer\', u\'State2 Rule Input\', '
-            'u\'State2 Rule Input\']]'
+            u'[u\'exp_id0\', [u\'\\u0627\\u062e\\u062a\\u0628\\u0627\\u0631\\u0'
+            '627\\u062a Answer\', u\'\\u0627\\u062e\\u062a\\u0628\\u0627\\u063'
+            '1\\u0627\\u062a Rule Input\', u\'\\u0627\\u062e\\u062a\\u0628\\u0'
+            '627\\u0631\\u0627\\u062a Rule Input\']]'
         )]
         self.assertEqual(actual_output, expected_output)
 
