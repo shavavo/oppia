@@ -276,7 +276,7 @@ class RuleInputToCustomizationArgsMappingOneOffJob(jobs.BaseMapReduceOneOffJobMa
                             item.id,
                             '%s %s' % (
                                 state_name.encode('utf-8'),
-                                'Answer')
+                                'Answer'.encode('utf-8'))
                         )
                 
                 if state.interaction.id == 'DragAndDropSortInput':
@@ -289,7 +289,7 @@ class RuleInputToCustomizationArgsMappingOneOffJob(jobs.BaseMapReduceOneOffJobMa
                             item.id,
                             '%s %s' % (
                                 state_name.encode('utf-8'),
-                                'Answer')
+                                'Answer'.encode('utf-8'))
                         )
 
             for group in state.interaction.answer_groups:
@@ -306,7 +306,7 @@ class RuleInputToCustomizationArgsMappingOneOffJob(jobs.BaseMapReduceOneOffJobMa
                                 item.id,
                                 '%s %s' % (
                                     state_name.encode('utf-8'),
-                                    'Rule Input')
+                                    'Rule Input'.encode('utf-8'))
                             )
                     if state.interaction.id == 'DragAndDropSortInput':
                         if rule_type in [
@@ -325,7 +325,7 @@ class RuleInputToCustomizationArgsMappingOneOffJob(jobs.BaseMapReduceOneOffJobMa
                                     item.id,
                                     '%s %s' % (
                                         state_name.encode('utf-8'),
-                                        'Rule Input')
+                                        'Rule Input'.encode('utf-8'))
                                 )
                         elif rule_type == 'HasElementXAtPositionY':
                             # For rule type HasElementXAtPositionY,
@@ -341,7 +341,7 @@ class RuleInputToCustomizationArgsMappingOneOffJob(jobs.BaseMapReduceOneOffJobMa
                                     item.id,
                                     '%s %s' % (
                                         state_name.encode('utf-8'),
-                                        'Rule Input')
+                                        'Rule Input'.encode('utf-8'))
                                 )
                         elif rule_type == 'HasElementXBeforeElementY':
                             # For rule type HasElementXBeforeElementY,
@@ -357,7 +357,7 @@ class RuleInputToCustomizationArgsMappingOneOffJob(jobs.BaseMapReduceOneOffJobMa
                                         item.id,
                                         '%s %s' % (
                                             state_name.encode('utf-8'),
-                                            'Rule Input')
+                                            'Rule Input'.encode('utf-8'))
                                     )
                                             
     @staticmethod
