@@ -223,7 +223,7 @@ class RuleInputToCustomizationArgsMappingOneOffJob(jobs.BaseMapReduceOneOffJobMa
         if item.deleted:
             return
 
-        def check_rule_inputs(value_type, value, choices):
+        def get_invalid_values(value_type, value, choices):
             """Checks that the html in SetOfHtmlString, ListOfSetsOfHtmlStrings,
             and DragAndDropHtmlString rule inputs have associated content ids
             in choices.
@@ -237,22 +237,25 @@ class RuleInputToCustomizationArgsMappingOneOffJob(jobs.BaseMapReduceOneOffJobMa
             Returns:
                 *. The migrated rule input.
             """
+            invalid_values = []
+
             if value_type == 'DragAndDropHtmlString':
-                return value in choices
+                if value not in choices:
+                    invalid_values.append(value)
 
             if value_type == 'SetOfHtmlString':
-                return all(
-                    check_rule_inputs(
-                        'DragAndDropHtmlString', html, choices
-                    ) for html in value
-                )
+                for html in value:
+                    invalid_values.extend(
+                        get_invalid_values(
+                            'DragAndDropHtmlString', html, choices))
             
             if value_type == 'ListOfSetsOfHtmlStrings':
-                return all(
-                    check_rule_inputs(
-                        'SetOfHtmlString', html_set, choices
-                    ) for html_set in value
-                )
+                for html_set in value:
+                    invalid_values.extend(
+                        get_invalid_values(
+                            'SetOfHtmlString', html_set, choices)) 
+
+            return invalid_values
 
         exploration = exp_fetchers.get_exploration_from_model(item)
         for state_name, state in exploration.states.items():            
@@ -269,23 +272,25 @@ class RuleInputToCustomizationArgsMappingOneOffJob(jobs.BaseMapReduceOneOffJobMa
 
             if solution is not None:
                 if state.interaction.id == 'ItemSelectionInput':
-                    if not check_rule_inputs(
-                        'SetOfHtmlString', solution.correct_answer, choices
-                    ):
+                    invalid_values = get_invalid_values(
+                        'SetOfHtmlString', solution.correct_answer, choices)
+                    if invalid_values:
                         yield (
-                            item.id,
-                            ('%s Answer' % state_name).encode('utf-8')
+                            exploration.id,
+                            ('<Answer> State: %s, Value: %s, Choices: %s' % (
+                                state_name, invalid_values, choices
+                            )).encode('utf-8')
                         )
                 
                 if state.interaction.id == 'DragAndDropSortInput':
-                    if not check_rule_inputs(
-                        'ListOfSetsOfHtmlStrings',
-                        solution.correct_answer,
-                        choices
-                    ):
+                    invalid_values = get_invalid_values(
+                        'ListOfSetsOfHtmlStrings', solution.correct_answer, choices)
+                    if invalid_values:
                         yield (
-                            item.id,
-                            ('%s Answer' % state_name).encode('utf-8')
+                            exploration.id,
+                            ('<Answer> State: %s, Value: %s, Choices: %s' % (
+                                state_name, invalid_values, choices
+                            )).encode('utf-8')
                         )
 
             for group in state.interaction.answer_groups:
@@ -295,12 +300,14 @@ class RuleInputToCustomizationArgsMappingOneOffJob(jobs.BaseMapReduceOneOffJobMa
                     if state.interaction.id == 'ItemSelectionInput':
                         # For all rule inputs for ItemSelectionInput, the x
                         # input is of type SetOfHtmlString.
-                        if not check_rule_inputs(
-                            'SetOfHtmlString', rule_inputs['x'], choices
-                        ):
+                        invalid_values = get_invalid_values(
+                            'SetOfHtmlString', rule_inputs['x'], choices)
+                        if invalid_values:
                             yield (
-                                item.id,
-                                ('%s Rule Input' % state_name).encode('utf-8')
+                                exploration.id,
+                                ('<Rule> State: %s, Value: %s, Choices: %s' % (
+                                    state_name, invalid_values, choices
+                                )).encode('utf-8')
                             )
                     if state.interaction.id == 'DragAndDropSortInput':
                         if rule_type in [
@@ -310,43 +317,42 @@ class RuleInputToCustomizationArgsMappingOneOffJob(jobs.BaseMapReduceOneOffJobMa
                             # For rule type IsEqualToOrdering and
                             # IsEqualToOrderingWithOneItemAtIncorrectPosition,
                             # the x is of type ListOfSetsOfHtmlStrings.
-                            if not check_rule_inputs(
-                                'ListOfSetsOfHtmlStrings',
-                                rule_inputs['x'],
-                                choices
-                            ):
+                            invalid_values = get_invalid_values(
+                                'ListOfSetsOfHtmlStrings', rule_inputs['x'], choices)
+                            if invalid_values:
                                 yield (
-                                    item.id,
-                                    ('%s Rule Input' % state_name).encode('utf-8')
+                                    exploration.id,
+                                    ('<Rule> State: %s, Value: %s, Choices: %s' % (
+                                        state_name, invalid_values, choices
+                                    )).encode('utf-8')
                                 )
                         elif rule_type == 'HasElementXAtPositionY':
                             # For rule type HasElementXAtPositionY,
                             # the x input is of type DragAndDropHtmlString. The
                             # y input is of type DragAndDropPositiveInt (no
                             # validation required).
-                            if not check_rule_inputs(
-                                'DragAndDropHtmlString',
-                                rule_inputs['x'],
-                                choices
-                            ):
+                            invalid_values = get_invalid_values(
+                                'DragAndDropHtmlString', rule_inputs['x'], choices)
+                            if invalid_values:
                                 yield (
-                                    item.id,
-                                    ('%s Rule Input' % state_name).encode('utf-8')
+                                    exploration.id,
+                                    ('<Rule> State: %s, Value: %s, Choices: %s' % (
+                                        state_name, invalid_values, choices
+                                    )).encode('utf-8')
                                 )
                         elif rule_type == 'HasElementXBeforeElementY':
                             # For rule type HasElementXBeforeElementY,
                             # the x and y inputs are of type
                             # DragAndDropHtmlString.
                             for rule_input_name in ['x', 'y']:
-                                if not check_rule_inputs(
-                                    'DragAndDropHtmlString',
-                                    rule_inputs[rule_input_name],
-                                    choices
-                                ):
+                                invalid_values = get_invalid_values(
+                                    'DragAndDropHtmlString', rule_inputs[rule_input_name], choices)
+                                if invalid_values:
                                     yield (
-                                        item.id,
-                                        ('%s Rule Input' % state_name
-                                            ).encode('utf-8')
+                                        exploration.id,
+                                        ('<Rule> State: %s, Value: %s, Choices: %s' % (
+                                            state_name, invalid_values, choices
+                                        )).encode('utf-8')
                                     )
                                                     
     @staticmethod
