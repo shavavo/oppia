@@ -892,6 +892,11 @@ class RuleInputToCustomizationArgsMappingOneOffJobTests(test_utils.GenericTestBa
     def setUp(self):
         super(RuleInputToCustomizationArgsMappingOneOffJobTests, self).setUp()
 
+        self.signup(self.ADMIN_EMAIL, self.ADMIN_USERNAME)
+        self.admin_id = self.get_user_id_from_email(self.ADMIN_EMAIL)
+        self.set_admins([self.ADMIN_USERNAME])
+        self.admin = user_services.UserActionsInfo(self.admin_id)
+
         # Setup user who will own the test explorations.
         self.signup(self.ALBERT_EMAIL, self.ALBERT_NAME)
         self.albert_id = self.get_user_id_from_email(self.ALBERT_EMAIL)
@@ -901,6 +906,7 @@ class RuleInputToCustomizationArgsMappingOneOffJobTests(test_utils.GenericTestBa
         """Checks (exp, state) pairs are produced correctly for ItemSelection
         interactions.
         """
+        owner = user_services.UserActionsInfo(self.albert_id)
         exploration = exp_domain.Exploration.create_default_exploration(
             self.VALID_EXP_ID, title='title', category='category')
 
@@ -1049,6 +1055,7 @@ class RuleInputToCustomizationArgsMappingOneOffJobTests(test_utils.GenericTestBa
         state2.update_interaction_hints(hint_list2)
 
         exp_services.save_new_exploration(self.albert_id, exploration)
+        rights_manager.publish_exploration(owner, self.VALID_EXP_ID)
 
         # Start ItemSelectionInteractionOneOff job on sample exploration.
         job_id = (
@@ -1062,22 +1069,22 @@ class RuleInputToCustomizationArgsMappingOneOffJobTests(test_utils.GenericTestBa
             interaction_jobs_one_off
             .RuleInputToCustomizationArgsMappingOneOffJob.get_output(job_id))
         expected_output = [(
-            u'[u\'exp_id0\', [u"<Answer> State: State2, Value: [u\'<p>This is '
-            'value3 for DragAndDropSort</p>\'], Choices: [u\'<p>This is value1'
-            ' for ItemSelection</p>\', u\'<p>This is value2 for ItemSelection'
-            '</p>\']", u"<Rule> State: State2, Value: [u\'<p>This is value3 for'
-            ' ItemSelection</p>\'], Choices: [u\'<p>This is value1 for '
-            'ItemSelection</p>\', u\'<p>This is value2 for ItemSelection</p>\''
-            ']", u"<Answer> State: State1, Value: [u\'<p>This is value2 for '
-            'DragAndDropSort</p>\'], Choices: [u\'<p>This is value1 for '
-            'ItemSelection</p>\', u\'<p>This is value2 for ItemSelection</p>'
-            '\']"]]')]
+            u'[u\'exp_id0\', [u"<ItemSelectionInput Answer> State: State2, '
+            'Invalid Values: [u\'<p>This is value3 for DragAndDropSort</p>\']'
+            '", u"<ItemSelectionInput Rule> State: State2, '
+            'Answer Group Index: 0, Invalid Values: [u\'<p>This is value3 for '
+            'ItemSelection</p>\']", u"<ItemSelectionInput Answer> State: State1'
+            ', Invalid Values: [u\'<p>This is value2 for '
+            'DragAndDropSort</p>\']"]]'
+        )]
+
         self.assertEqual(actual_output, expected_output)
 
     def test_exp_state_pairs_are_produced_for_drag_and_drop_sort_interactions(self):
         """Checks (exp, state) pairs are produced correctly for DragAndDropSort
         interactions.
         """
+        owner = user_services.UserActionsInfo(self.albert_id)
         exploration = exp_domain.Exploration.create_default_exploration(
             self.VALID_EXP_ID, title='title', category='category')
 
@@ -1228,6 +1235,7 @@ class RuleInputToCustomizationArgsMappingOneOffJobTests(test_utils.GenericTestBa
         state2.update_interaction_hints(hint_list2)
 
         exp_services.save_new_exploration(self.albert_id, exploration)
+        rights_manager.publish_exploration(owner, self.VALID_EXP_ID)
 
         # Start ItemSelectionInteractionOneOff job on sample exploration.
         job_id = (
@@ -1241,20 +1249,30 @@ class RuleInputToCustomizationArgsMappingOneOffJobTests(test_utils.GenericTestBa
             interaction_jobs_one_off
             .RuleInputToCustomizationArgsMappingOneOffJob.get_output(job_id))
         expected_output = [(
-            u'[u\'exp_id0\', [u"<Answer> State: \\u0627\\u062e\\u062a\\u0628'
-            '\\u0627\\u0631\\u0627\\u062a, Value: [u\'<p>This is value3 for '
-            'DragAndDropSort</p>\'], Choices: [u\'<p>This is value1 for '
-            'DragAndDropSort</p>\', u\'<p>This is value2 for DragAndDropSort'
-            '</p>\']", u"<Rule> State: \\u0627\\u062e\\u062a\\u0628\\u0627'
-            '\\u0631\\u0627\\u062a, Value: [u\'<p>This is value3 for '
-            'DragAndDropSort</p>\'], Choices: [u\'<p>This is value1 for '
-            'DragAndDropSort</p>\', u\'<p>This is value2 for DragAndDropSort'
-            '</p>\']", u"<Rule> State: \\u0627\\u062e\\u062a\\u0628\\u0627'
-            '\\u0631\\u0627\\u062a, Value: [u\'<p>This is value3 for '
-            'DragAndDropSort</p>\'], Choices: [u\'<p>This is value1 for '
-            'DragAndDropSort</p>\', u\'<p>This is value2 for DragAndDropSort'
-            '</p>\']"]]')]
+            u'[u\'exp_id0\', [u"<DragAndDropSortInput Answer> State: \\u0627'
+            '\\u062e\\u062a\\u0628\\u0627\\u0631\\u0627\\u062a, Invalid Values:'
+            ' [u\'<p>This is value3 for DragAndDropSort</p>\']", '
+            'u"<DragAndDropSortInput Rule> State: '
+            '\\u0627\\u062e\\u062a\\u0628\\u0627\\u0631\\u0627\\u062a, Answer '
+            'Group Index: 0, Invalid Values: [u\'<p>This is value3 for '
+            'DragAndDropSort</p>\']", u"<DragAndDropSortInput Rule> State: '
+            '\\u0627\\u062e\\u062a\\u0628\\u0627\\u0631\\u0627\\u062a, Answer '
+            'Group Index: 0, Invalid Values: [u\'<p>This is value3 for '
+            'DragAndDropSort</p>\']"]]')]
         self.assertEqual(actual_output, expected_output)
+
+        rights_manager.unpublish_exploration(self.admin, self.VALID_EXP_ID)
+        # Start job on private exploration.
+        job_id = (
+            interaction_jobs_one_off
+            .RuleInputToCustomizationArgsMappingOneOffJob.create_new())
+        (interaction_jobs_one_off.RuleInputToCustomizationArgsMappingOneOffJob
+            .enqueue(job_id))
+        self.process_and_flush_pending_mapreduce_tasks()
+        actual_output = (
+            interaction_jobs_one_off
+            .RuleInputToCustomizationArgsMappingOneOffJob.get_output(job_id))
+        self.assertEqual(actual_output, [])
 
     def test_no_action_is_performed_for_deleted_exploration(self):
         """Test that no action is performed on deleted explorations."""

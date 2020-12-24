@@ -222,6 +222,9 @@ class RuleInputToCustomizationArgsMappingOneOffJob(jobs.BaseMapReduceOneOffJobMa
     def map(item):
         if item.deleted:
             return
+        exp_status = rights_manager.get_exploration_rights(item.id).status
+        if exp_status == rights_domain.ACTIVITY_STATUS_PRIVATE:
+            return
 
         def get_invalid_values(value_type, value, choices):
             """Checks that the html in SetOfHtmlString, ListOfSetsOfHtmlStrings,
@@ -277,8 +280,8 @@ class RuleInputToCustomizationArgsMappingOneOffJob(jobs.BaseMapReduceOneOffJobMa
                     if invalid_values:
                         yield (
                             exploration.id,
-                            ('<Answer> State: %s, Value: %s, Choices: %s' % (
-                                state_name, invalid_values, choices
+                            ('<ItemSelectionInput Answer> State: %s, Invalid Values: %s' % (
+                                state_name, invalid_values
                             )).encode('utf-8')
                         )
                 
@@ -288,12 +291,12 @@ class RuleInputToCustomizationArgsMappingOneOffJob(jobs.BaseMapReduceOneOffJobMa
                     if invalid_values:
                         yield (
                             exploration.id,
-                            ('<Answer> State: %s, Value: %s, Choices: %s' % (
-                                state_name, invalid_values, choices
+                            ('<DragAndDropSortInput Answer> State: %s, Invalid Values: %s' % (
+                                state_name, invalid_values
                             )).encode('utf-8')
                         )
 
-            for group in state.interaction.answer_groups:
+            for group_i, group in enumerate(state.interaction.answer_groups):
                 for rule_spec in group.rule_specs:
                     rule_inputs = rule_spec.inputs
                     rule_type = rule_spec.rule_type
@@ -305,8 +308,8 @@ class RuleInputToCustomizationArgsMappingOneOffJob(jobs.BaseMapReduceOneOffJobMa
                         if invalid_values:
                             yield (
                                 exploration.id,
-                                ('<Rule> State: %s, Value: %s, Choices: %s' % (
-                                    state_name, invalid_values, choices
+                                ('<ItemSelectionInput Rule> State: %s, Answer Group Index: %i, Invalid Values: %s' % (
+                                    state_name, group_i, invalid_values
                                 )).encode('utf-8')
                             )
                     if state.interaction.id == 'DragAndDropSortInput':
@@ -322,8 +325,8 @@ class RuleInputToCustomizationArgsMappingOneOffJob(jobs.BaseMapReduceOneOffJobMa
                             if invalid_values:
                                 yield (
                                     exploration.id,
-                                    ('<Rule> State: %s, Value: %s, Choices: %s' % (
-                                        state_name, invalid_values, choices
+                                    ('<DragAndDropSortInput Rule> State: %s, Answer Group Index: %i, Invalid Values: %s' % (
+                                        state_name, group_i, invalid_values
                                     )).encode('utf-8')
                                 )
                         elif rule_type == 'HasElementXAtPositionY':
@@ -336,8 +339,8 @@ class RuleInputToCustomizationArgsMappingOneOffJob(jobs.BaseMapReduceOneOffJobMa
                             if invalid_values:
                                 yield (
                                     exploration.id,
-                                    ('<Rule> State: %s, Value: %s, Choices: %s' % (
-                                        state_name, invalid_values, choices
+                                    ('<DragAndDropSortInput Rule> State: %s, Answer Group Index: %i, Invalid Values: %s' % (
+                                        state_name, group_i, invalid_values
                                     )).encode('utf-8')
                                 )
                         elif rule_type == 'HasElementXBeforeElementY':
@@ -350,8 +353,8 @@ class RuleInputToCustomizationArgsMappingOneOffJob(jobs.BaseMapReduceOneOffJobMa
                                 if invalid_values:
                                     yield (
                                         exploration.id,
-                                        ('<Rule> State: %s, Value: %s, Choices: %s' % (
-                                            state_name, invalid_values, choices
+                                        ('<DragAndDropSortInput Rule> State: %s, Answer Group Index: %i, Invalid Values: %s' % (
+                                            state_name, group_i, invalid_values
                                         )).encode('utf-8')
                                     )
                                                     
